@@ -2,6 +2,8 @@
 #include <cstring>
 #include <windows.h>
 
+using namespace std;
+
 void gotoxy(int x, int y)
 {
     COORD coord;
@@ -19,10 +21,53 @@ void drawBox(int x, int y, int width, int height)
             if (i == 0 || i == height - 1 || j == 0 || j == width - 1)
             {
                 gotoxy(x + j, y + i);
-                std::cout << "#";
+                cout << "#";
             }
         }
     }
+}
+
+void login(int width, int height)
+{
+    // Tạo một cửa sổ con để hiển thị giao diện đăng nhập
+    int loginWinHeight = 8;
+    int loginWinWidth = 40;
+    int loginWinY = (height - loginWinHeight) / 2;
+    int loginWinX = (width - loginWinWidth) / 2;
+
+    drawBox(loginWinX, loginWinY, loginWinWidth, loginWinHeight);
+
+    gotoxy(loginWinX + 2, loginWinY + 2);
+    cout << "Dang nhap";
+
+    gotoxy(loginWinX + 2, loginWinY + 4);
+    cout << "Ten dang nhap: ";
+
+    gotoxy(loginWinX + 2, loginWinY + 5);
+    cout << "Mat khau: ";
+
+    char username[20];
+    char password[20];
+
+    gotoxy(loginWinX + 18, loginWinY + 4);
+    cin >> username;
+
+    gotoxy(loginWinX + 18, loginWinY + 5);
+    // Vô hiệu hóa hiển thị ký tự trên màn hình
+    DWORD mode;
+    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
+    GetConsoleMode(handle, &mode);
+    SetConsoleMode(handle, mode & ~ENABLE_ECHO_INPUT);
+    cin >> password;
+    // Bật lại hiển thị ký tự trên màn hình
+    SetConsoleMode(handle, mode);
+
+    // Xóa cửa sổ đăng nhập
+    system("cls");
+
+    // In ra tên đăng nhập và mật khẩu để kiểm tra
+    cout << "Ten dang nhap: " << username << std::endl;
+    cout << "Mat khau: " << password << std::endl;
 }
 
 int main()
@@ -43,47 +88,4 @@ int main()
     login(width, height);
 
     return 0;
-}
-
-void login(int width, int height)
-{
-    // Tạo một cửa sổ con để hiển thị giao diện đăng nhập
-    int loginWinHeight = 8;
-    int loginWinWidth = 40;
-    int loginWinY = (height - loginWinHeight) / 2;
-    int loginWinX = (width - loginWinWidth) / 2;
-
-    drawBox(loginWinX, loginWinY, loginWinWidth, loginWinHeight);
-
-    gotoxy(loginWinX + 2, loginWinY + 2);
-    std::cout << "Dang nhap";
-
-    gotoxy(loginWinX + 2, loginWinY + 4);
-    std::cout << "Ten dang nhap: ";
-
-    gotoxy(loginWinX + 2, loginWinY + 5);
-    std::cout << "Mat khau: ";
-
-    char username[20];
-    char password[20];
-
-    gotoxy(loginWinX + 18, loginWinY + 4);
-    std::cin >> username;
-
-    gotoxy(loginWinX + 18, loginWinY + 5);
-    // Vô hiệu hóa hiển thị ký tự trên màn hình
-    DWORD mode;
-    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
-    GetConsoleMode(handle, &mode);
-    SetConsoleMode(handle, mode & ~ENABLE_ECHO_INPUT);
-    std::cin >> password;
-    // Bật lại hiển thị ký tự trên màn hình
-    SetConsoleMode(handle, mode);
-
-    // Xóa cửa sổ đăng nhập
-    system("cls");
-
-    // In ra tên đăng nhập và mật khẩu để kiểm tra
-    std::cout << "Ten dang nhap: " << username << std::endl;
-    std::cout << "Mat khau: " << password << std::endl;
 }
