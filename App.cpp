@@ -14,7 +14,7 @@ void drawBox(int x, int y, int width, int height);
 void home(int width, int height);
 void login(int width, int height);
 void changePassword(int width, int height);
-
+void forgotPassword(int width, int height);
 int main()
 {
     // Ẩn hiện con trỏ nhấp nháy
@@ -59,7 +59,7 @@ void drawBox(int x, int y, int width, int height)
 void home(int width, int height)
 {
     system("cls");
-    cout << "Đây là trang chủ." << endl;
+    cout << "Menu" << endl;
 }
 
 void login(int width, int height)
@@ -73,13 +73,13 @@ void login(int width, int height)
     drawBox(loginWinX, loginWinY, loginWinWidth, loginWinHeight);
 
     gotoxy(loginWinX + 2, loginWinY + 2);
-    cout << "\tĐăng nhập";
+    cout << "\tLogin";
 
     gotoxy(loginWinX + 2, loginWinY + 4);
-    cout << "Tên đăng nhập: ";
+    cout << "Username: ";
 
     gotoxy(loginWinX + 2, loginWinY + 5);
-    cout << "Mật khẩu: ";
+    cout << "Password: ";
 
     char username[20];
     char password[20];
@@ -101,34 +101,33 @@ void login(int width, int height)
     system("cls");
     if (username == NULL || password == NULL)
     {
-        cout << "Nhập đủ thông tin" << endl;
+        cout << "Fill in information: " << endl;
     }
     else
     {
         int msg = account.checkInfo(username, password);
 
         if (msg == -1)
-            cout << "Không tìm thấy tài khoản." << endl;
+            cout << "Username Not Found!" << endl;
         else if (msg == -2)
-            cout << "Mật khẩu không chính xác." << endl;
+            cout << "Incorrect Password!" << endl;
         else if (msg == -3)
         {
-            cout << "Bạn cần thay đổi mật khẩu." << endl;
-            account.printList();
+            cout << "You need to change password." << endl;
             sleep(3);
             system("cls");
             changePassword(width, height);
         }
         else if (msg == -4)
-            cout << "Tài khoản của bạn bị khóa." << endl;
+            cout << "Your account has been ban." << endl;
         else if (msg == 1)
         {
-            cout << "Đăng nhập thành công." << endl;
+            cout << "Login success." << endl;
             sleep(2);
             home(width, height);
         }
         else
-            cout << "Lỗi không xác định." << endl;
+            cout << "Unknown Error." << endl;
     }
 }
 
@@ -143,16 +142,16 @@ void changePassword(int width, int height)
     drawBox(changePasswordWinX, changePasswordWinY, changePasswordWinWidth, changePasswordWinHeight);
 
     gotoxy(changePasswordWinX + 2, changePasswordWinY + 2);
-    cout << "\t\tĐổi mật khẩu";
+    cout << "\t\tChange Password";
 
     gotoxy(changePasswordWinX + 2, changePasswordWinY + 4);
-    cout << "Mật khẩu cũ: ";
+    cout << "Old Password: ";
 
     gotoxy(changePasswordWinX + 2, changePasswordWinY + 5);
-    cout << "Mật khẩu mới: ";
+    cout << "New Password: ";
 
     gotoxy(changePasswordWinX + 2, changePasswordWinY + 6);
-    cout << "Nhập lại khẩu mới: ";
+    cout << "Renew Passwrod : ";
 
     char oldPassword[20];
     char newPassword[20];
@@ -173,19 +172,19 @@ void changePassword(int width, int height)
     {
         system("cls");
         if (msg == -1)
-            cout << "Mật khẩu cũ không chính xác." << endl;
+            cout << "Old password is incorrect, Check again!" << endl;
         else if (msg == -2)
-            cout << "Mật khẩu nhập lại không chính xác." << endl;
+            cout << "New password aren't same with the new one." << endl;
         else if (msg == -3)
-            cout << "Độ dài mật khẩu có ít nhất 8 ký tự." << endl;
+            cout << "Password has to be at least 8 letter." << endl;
         else if (msg == -4)
-            cout << "Mật khẩu phải bao gồm ít nhất 1 số và 1 ký tự đặc biệt." << endl;
+            cout << "Password have at least 1 number and 1 special letter." << endl;
         changePassword(width, height);
     }
     else
     {
         system("cls");
-        cout << "Đổi mật khẩu thành công" << endl;
+        cout << "Change password success!" << endl;
         sleep(2);
         home(width, height);
     }
