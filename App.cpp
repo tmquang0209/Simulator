@@ -2,6 +2,7 @@
 #include <cstring>
 #include <windows.h>
 #include <unistd.h>
+#include <conio.h> // Include the conio.h header for _getch() function
 #include "Account.h"
 #include "Account.cpp"
 
@@ -59,7 +60,102 @@ void drawBox(int x, int y, int width, int height)
 void home(int width, int height)
 {
     system("cls");
-    cout << "Menu" << endl;
+    // Tạo một cửa sổ con để hiển thị giao diện đăng nhập
+    int homeWinHeight = 15;
+    int homeWinWidth = 40;
+    int homeWinY = (height - homeWinHeight) / 2;
+    int homeWinX = (width - homeWinWidth) / 2;
+
+    drawBox(homeWinX, homeWinY, homeWinWidth, homeWinHeight);
+    gotoxy(homeWinX + 4, homeWinY + 2);
+    cout << "\t\tHome";
+
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(homeWinX + 2, homeWinY + 4);
+        if (selectedOption == 1)
+        {
+            SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x0B); // Set color to blue
+            cout << "-> 1. Account info.";
+            SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x07); // Reset color to default
+        }
+        else
+            cout << "   1. Account info.";
+
+        gotoxy(homeWinX + 2, homeWinY + 5);
+        if (selectedOption == 2)
+        {
+            SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x0B); // Set color to blue
+            cout << "-> 2. Account list.";
+            SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x07); // Reset color to default
+        }
+        else
+            cout << "   2. Account list.";
+
+        gotoxy(homeWinX + 2, homeWinY + 6);
+        if (selectedOption == 3)
+        {
+            SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x0B); // Set color to blue
+            cout << "-> 3. Activity logs.";
+            SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x07); // Reset color to default
+        }
+        else
+            cout << "   3. Activity logs.";
+
+        gotoxy(homeWinX + 2, homeWinY + 7);
+        if (selectedOption == 4)
+        {
+            SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x0B); // Set color to blue
+            cout << "-> 4. Logout";
+            SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0x07); // Reset color to default
+        }
+        else
+            cout << "   4. Logout";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        switch (key)
+        {
+        case 72: // Up arrow key
+            if (selectedOption > 1)
+                selectedOption--;
+            break;
+        case 80: // Down arrow key
+            if (selectedOption < 4)
+                selectedOption++;
+            break;
+        case 13: // Enter key
+            optionSelected = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    // Process the selected option
+    switch (selectedOption)
+    {
+    case 1:
+        // Handle Account info option
+        break;
+    case 2:
+        // Handle Account list option
+        break;
+    case 3:
+        // Handle Activity logs option
+        break;
+    case 4:
+        // Handle Logout option
+        break;
+    default:
+        break;
+    }
 }
 
 void login(int width, int height)
