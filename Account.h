@@ -42,6 +42,7 @@ public:
     void printInfo();
     int checkInfo(string username, string password);
     int changePassword(string oldPassword, string newPassword, string reNewPassword);
+    void writeActLog(string username, string actName);
     int forgotPassword(string username, int type);
 };
 
