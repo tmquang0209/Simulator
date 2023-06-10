@@ -244,7 +244,7 @@ void login()
     case 1:
         if (username == NULL || password == NULL)
         {
-            cout << "Fill in information." << endl;
+            cout << "Fill full the information." << endl;
         }
         else
         {
