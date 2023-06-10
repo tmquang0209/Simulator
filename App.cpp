@@ -241,48 +241,37 @@ void login()
     // Bật lại hiển thị ký tự trên màn hình
     SetConsoleMode(handle, mode);
 
-    gotoxy(loginWinX + 2, loginWinY + 3);
-    SetConsoleTextAttribute(hConsole, 14);
-    int msg = account.checkInfo(username, password);
-    switch (selectedOption)
+    // Xóa cửa sổ đăng nhập
+    system("cls");
+    if (username == NULL || password == NULL)
     {
-    case 1:
-        if (username == NULL || password == NULL)
+        cout << "Fill in information: " << endl;
+    }
+    else
+    {
+        int msg = account.checkInfo(username, password);
+
+        if (msg == -1)
+            cout << "Username Not Found!" << endl;
+        else if (msg == -2)
+            cout << "Incorrect Password!" << endl;
+        else if (msg == -3)
         {
-            cout << "Fill full the information." << endl;
+            cout << "You need to change password." << endl;
+            sleep(3);
+            system("cls");
+            changePassword();
+        }
+        else if (msg == -4)
+            cout << "Your account has been ban." << endl;
+        else if (msg == 1)
+        {
+            cout << "Login success." << endl;
+            sleep(2);
+            home();
         }
         else
-        {
-            if (msg == -1)
-                cout << "Username Not Found!" << endl;
-            else if (msg == -2)
-                cout << "Incorrect Password!" << endl;
-            else if (msg == -3)
-            {
-                cout << "You need to change password." << endl;
-                sleep(3);
-                changePassword();
-            }
-            else if (msg == -4)
-                cout << "Your account has been ban." << endl;
-            else if (msg == 1)
-            {
-                cout << "Login success." << endl;
-                account.writeActLog(username, "login success.");
-
-                SetConsoleTextAttribute(hConsole, 15);
-                sleep(2);
-                home();
-            }
-            else
-                cout << "Unknown Error." << endl;
-        }
-        break;
-    case 2:
-        forgotPassword();
-        break;
-    default:
-        break;
+            cout << "Unknown Error." << endl;
     }
 }
 
