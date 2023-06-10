@@ -123,6 +123,7 @@ void login(int width, int height)
         else if (msg == 1)
         {
             cout << "Login success." << endl;
+            account.writeActLog(username, "login success.");
             sleep(2);
             home(width, height);
         }
