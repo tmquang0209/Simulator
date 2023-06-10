@@ -500,6 +500,7 @@ void accountInformation()
 
 void updateAccount()
 {
+    cout << "Test merge";
 }
 
 void forgotPassword()
