@@ -326,3 +326,11 @@ void changePassword()
         home(width, height);
     }
 }
+
+void updateAccount()
+{
+}
+
+void forgotPassword()
+{
+}
