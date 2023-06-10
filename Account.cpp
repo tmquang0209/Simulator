@@ -88,6 +88,7 @@ void Account::readFileAccount()
         getline(iss, info.phoneNumber, '|');
         getline(iss, info.username, '|');
         getline(iss, info.password, '|');
+        getline(iss, info.typeAccount, '|');
         getline(iss, disable, '|');
         getline(iss, changePassword, '|');
 
@@ -107,6 +108,7 @@ void Account::writeFileAccount()
     {
         fOut << list[i].fullName << "|" << list[i].email << "|" << list[i].phoneNumber << "|"
              << list[i].username << "|" << list[i].password << "|"
+             << list[i].typeAccount << "|"
              << (list[i].isDisable ? "1" : "0") << "|" << list[i].changePassword << "|" << endl;
     }
     fOut.close();
