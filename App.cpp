@@ -229,34 +229,41 @@ void login()
 
     while (!optionSelected)
     {
-        cout << "Fill in information: " << endl;
-    }
-    else
-    {
-        int msg = account.checkInfo(username, password);
-
-        if (msg == -1)
-            cout << "Username Not Found!" << endl;
-        else if (msg == -2)
-            cout << "Incorrect Password!" << endl;
-        else if (msg == -3)
+    case 1:
+        if (username == NULL || password == NULL)
         {
-            cout << "You need to change password." << endl;
-            sleep(3);
-            system("cls");
-            changePassword(width, height);
-        }
-        else if (msg == -4)
-            cout << "Your account has been ban." << endl;
-        else if (msg == 1)
-        {
-            cout << "Login success." << endl;
-            account.writeActLog(username, "login success.");
-            sleep(2);
-            home(width, height);
+            cout << "Fill full the information." << endl;
         }
         else
-            cout << "Unknown Error." << endl;
+        {
+            if (msg == -1)
+                cout << "Username Not Found!" << endl;
+            else if (msg == -2)
+                cout << "Incorrect Password!" << endl;
+            else if (msg == -3)
+            {
+                cout << "You need to change password." << endl;
+                sleep(3);
+                changePassword();
+            }
+            else if (msg == -4)
+                cout << "Your account has been ban." << endl;
+            else if (msg == 1)
+            {
+                cout << "Login success." << endl;
+                account.writeActLog(username, "login success.");
+                sleep(2);
+                home();
+            }
+            else
+                cout << "Unknown Error." << endl;
+        }
+        break;
+    case 2:
+        forgotPassword();
+        break;
+    default:
+        break;
     }
 }
 
