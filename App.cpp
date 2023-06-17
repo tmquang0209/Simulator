@@ -189,3 +189,297 @@ void changePassword(int width, int height)
         home(width, height);
     }
 }
+
+void accountInformation()
+{
+    system("cls");
+
+    int accountInfoWinHeight = 15;
+    int accountInfoWinWidth = 50;
+    int accountInfoWinY = (height - accountInfoWinHeight) / 2;
+    int accountInfoWinX = (width - accountInfoWinWidth) / 2;
+
+    drawBox(accountInfoWinX, accountInfoWinY, accountInfoWinWidth, accountInfoWinHeight);
+
+    gotoxy(accountInfoWinX + 2, accountInfoWinY + 2);
+    cout << "\t\tAccount information";
+
+    gotoxy(accountInfoWinX + 5, accountInfoWinY + 4);
+    cout << "Fullname: ";
+    gotoxy(accountInfoWinX + 5, accountInfoWinY + 5);
+    cout << "Email: ";
+    gotoxy(accountInfoWinX + 5, accountInfoWinY + 6);
+    cout << "Phone number: ";
+    gotoxy(accountInfoWinX + 5, accountInfoWinY + 7);
+    cout << "Username: ";
+    gotoxy(accountInfoWinX + 5, accountInfoWinY + 8);
+    cout << "Type account: ";
+
+    gotoxy(accountInfoWinX + 20, accountInfoWinY + 4);
+    cout << account.getInfo().fullName;
+
+    gotoxy(accountInfoWinX + 20, accountInfoWinY + 5);
+    cout << account.getInfo().email;
+
+    gotoxy(accountInfoWinX + 20, accountInfoWinY + 6);
+    cout << account.getInfo().phoneNumber;
+
+    gotoxy(accountInfoWinX + 20, accountInfoWinY + 7);
+    cout << account.getInfo().username;
+
+    gotoxy(accountInfoWinX + 20, accountInfoWinY + 8);
+    cout << account.getInfo().typeAccount;
+
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(accountInfoWinX + 10, accountInfoWinY + 11);
+        if (selectedOption == 1)
+            cout << "[ Update information ]";
+        else
+            cout << "  Update information  ";
+
+        gotoxy(accountInfoWinX + 10, accountInfoWinY + 12);
+        if (selectedOption == 2)
+            cout << "[ Change password ]";
+        else
+            cout << "  Change password  ";
+
+        gotoxy(accountInfoWinX + 10, accountInfoWinY + 13);
+        if (selectedOption == 3)
+            cout << "[ Back ]";
+        else
+            cout << "  Back  ";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        switch (key)
+        {
+        case 72: // Up arrow key
+            if (selectedOption > 1)
+                selectedOption--;
+            break;
+        case 80: // Down arrow key
+            if (selectedOption < 4)
+                selectedOption++;
+            break;
+        case 13: // Enter key
+            optionSelected = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    // Process the selected option
+    switch (selectedOption)
+    {
+    case 1:
+        previousName = "AccountInfo";
+        updateAccount();
+        break;
+    case 2:
+        previousName = "AccountInfo";
+        changePassword();
+        break;
+    case 3:
+        back();
+        break;
+    default:
+        break;
+    }
+}
+
+void updateAccount()
+{
+}
+
+void forgotPassword()
+{
+    int forgotPageWinHeight = 10;
+    int forgotPageWinWidth = 50;
+    int forgotPageWinY = (height - forgotPageWinHeight) / 2;
+    int forgotPageWinx = (width - forgotPageWinWidth) / 2;
+
+    drawBox(forgotPageWinx, forgotPageWinY, forgotPageWinWidth, forgotPageWinHeight);
+
+    gotoxy(forgotPageWinx + 2, forgotPageWinY + 2);
+    cout << "\t\tForgot Password";
+
+    gotoxy(forgotPageWinx + 2, forgotPageWinY + 4);
+    cout << "Email/PhoneNumber: ";
+
+    gotoxy(forgotPageWinx + 2, forgotPageWinY + 5);
+    cout << "Username: ";
+
+    char emailPhoneNum[30];
+    char username[20];
+    gotoxy(forgotPageWinx + 25, forgotPageWinY + 4);
+    cin >> emailPhoneNum;
+
+    gotoxy(forgotPageWinx + 25, forgotPageWinY + 5);
+    cin >> username;
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(forgotPageWinx + 10, forgotPageWinY + 8);
+        if (selectedOption == 1)
+            cout << "[ Submit ]";
+        else
+            cout << "  Submit  ";
+
+        gotoxy(forgotPageWinx + 10, forgotPageWinY + 9);
+        if (selectedOption == 2)
+            cout << "[ Back ]";
+        else
+            cout << "  Back  ";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        switch (key)
+        {
+        case 72: // Up arrow key
+            if (selectedOption > 1)
+                selectedOption--;
+            break;
+        case 80: // Down arrow key
+            if (selectedOption < 4)
+                selectedOption++;
+            break;
+        case 13: // Enter key
+            optionSelected = true;
+            break;
+        default:
+            break;
+        }
+        int msg = account.forgotPassword(type, username)
+                      gotoxy(forgotPageWinx + 2, forgotPageWinY + 3);
+        if (msg != 1)
+        {
+            system("cls");
+            if (msg == -1)
+            {
+                cout << "Email or phone number is incorrect, please check again!" << endl;
+            }
+            else if (msg == -2)
+            {
+                cout << "Username not found, please check again!" << endl;
+            }
+        }
+        else
+        {
+            system("cls");
+            cout << "Change password success!" << endl;
+            sleep(2);
+            system("cls");
+            forgotPassword();
+        }
+    }
+}
+void forgotPage()
+{
+    int forgotPageWinHeight = 10;
+    int forgotPageWinWidth = 50;
+    int forgotPageWinY = (height - forgotPageWinHeight) / 2;
+    int forgotPageWinx = (width - forgotPageWinWidth) / 2;
+
+    drawBox(forgotPageWinx, forgotPageWinY, forgotPageWinWidth, forgotPageWinHeight);
+
+    gotoxy(forgotPageWinx + 2, forgotPageWinY + 2);
+    cout << "\t\tVerify and change";
+
+    gotoxy(forgotPageWinx + 5, forgotPageWinY + 4);
+    cout << "Enter Code: ";
+
+    gotoxy(forgotPageWinx + 5, forgotPageWinY + 5);
+    cout << "New Password: ";
+
+    gotoxy(forgotPageWinx + 5, forgotPageWinY + 6);
+    cout << "Renew Passwrod : ";
+
+    char nCode[20];
+    char newPassword[20];
+    char reNewPassword[20];
+
+    gotoxy(forgotPageWinx + 25, forgotPageWinY + 4);
+    cin >> nCode;
+
+    gotoxy(forgotPageWinx + 25, forgotPageWinY + 5);
+    cin >> newPassword;
+
+    gotoxy(forgotPageWinx + 25, forgotPageWinY + 6);
+    cin >> reNewPassword;
+
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(forgotPageWinx + 10, forgotPageWinY + 8);
+        if (selectedOption == 1)
+            cout << "[ Submit ]";
+        else
+            cout << "  Submit  ";
+
+        gotoxy(forgotPageWinx + 10, forgotPageWinY + 9);
+        if (selectedOption == 2)
+            cout << "[ Back ]";
+        else
+            cout << "  Back  ";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        switch (key)
+        {
+        case 72: // Up arrow key
+            if (selectedOption > 1)
+                selectedOption--;
+            break;
+        case 80: // Down arrow key
+            if (selectedOption < 4)
+                selectedOption++;
+            break;
+        case 13: // Enter key
+            optionSelected = true;
+            break;
+        default:
+            break;
+        }
+
+        int msg = account.forgotPage(nCode, newPassword, reNewPassword);
+        gotoxy(forgotPageWinx + 2, forgotPageWinY + 3);
+        if (msg != 1)
+        {
+            system("cls");
+            if (msg == -1)
+                cout << "Your verify code is incorrect, plese check again!" << endl;
+            else if (msg == -2)
+                cout << "New password aren't same with the new one." << endl;
+            else if (msg == -3)
+                cout << "Password has to be at least 8 letter." << endl;
+            else if (msg == -4)
+                cout << "Password have at least 1 number and 1 special letter." << endl;
+            forgotPage();
+        }
+        else
+        {
+            system("cls");
+            cout << "Change password success!" << endl;
+            sleep(2);
+            system("cls");
+            login();
+        }
+    }
+}

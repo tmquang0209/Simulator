@@ -36,13 +36,17 @@ public:
     void setList(vector<Info> list);
     vector<Info> getList();
     bool checkInfo(string username);
+    bool checkVerify(vector<string> &, string &);
     void readFileAccount();
     void writeFileAccount();
     void printList();
     void printInfo();
     int checkInfo(string username, string password);
     int changePassword(string oldPassword, string newPassword, string reNewPassword);
-    int forgotPassword(string username, int type);
+    int forgotPassword(string username, string type);
+    void writeActLog(string username, string actName);
+    int forgotPassword(string type, string username);
+    int forgotPage(string nCode, string newPassword, string reNewPassword);
 };
 
 #endif
