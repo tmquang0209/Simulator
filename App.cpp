@@ -464,7 +464,7 @@ void forgotPage()
         {
             system("cls");
             if (msg == -1)
-                cout << "Your verify code is incorrect, plese check again!" << endl;
+                cout << "Your verify code is incorrect, please check again!" << endl;
             else if (msg == -2)
                 cout << "New password aren't same with the new one." << endl;
             else if (msg == -3)
