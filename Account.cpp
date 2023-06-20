@@ -246,7 +246,7 @@ int Account::changePassword(string oldPassword, string newPassword, string reNew
  * @param reNewPassword
  * @return int
  */
-int Account::forgotPage(string nCode, string newPassword, string reNewPassword)
+int Account::forgotPassword(string nCode, string newPassword, string reNewPassword)
 {
     ifstream f1;
     vector<string> dataCode;
