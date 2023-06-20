@@ -232,7 +232,32 @@ int Account::changePassword(string oldPassword, string newPassword, string reNew
     writeFileAccount();
     return 1;
 }
+void Account::writeActLog(string username, string actName)
+{
+    // Get the current time using the system clock
+    chrono::system_clock::time_point now = chrono::system_clock::now();
+    time_t currentTime = chrono::system_clock::to_time_t(now);
 
+    // Convert the time to a string with the desired format
+    char buffer[80];
+    strftime(buffer, sizeof(buffer), "%H:%M:%S %d-%m-%Y", localtime(&currentTime));
+
+    // Print the formatted time
+    cout << "Current time: " << buffer << endl;
+
+    fstream fout;
+    fout.open("./log/" + username + ".txt", ios::app);
+
+    if (fout.is_open())
+    {
+        fout << buffer << ": " << actName << endl;
+        fout.close();
+    }
+    else
+    {
+        cout << "Can't open file.";
+    }
+}
 /**
  * @brief Forgot Page
  * *Message error:
@@ -246,7 +271,7 @@ int Account::changePassword(string oldPassword, string newPassword, string reNew
  * @param reNewPassword
  * @return int
  */
-int Account::forgotPassword(string nCode, string newPassword, string reNewPassword)
+int Account::forgotPage(string nCode, string newPassword, string reNewPassword)
 {
     ifstream f1;
     vector<string> dataCode;
@@ -316,7 +341,7 @@ int Account::forgotPassword(string nCode, string newPassword, string reNewPasswo
  * @brief Forgot Password
  * *Message error:
  * 1: Success
- * -1: Your email/phonenumber do not found!
+ * -1: Your email/phone number do not found!
  * -2: Your username do not found!
  * @param type
  * @param username

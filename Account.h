@@ -43,10 +43,9 @@ public:
     void printInfo();
     int checkInfo(string username, string password);
     int changePassword(string oldPassword, string newPassword, string reNewPassword);
-    int forgotPassword(string username, string type);
     void writeActLog(string username, string actName);
     int forgotPassword(string type, string username);
-    int forgotPage(string nCode, string newPassword, string reNewPassword);
+    int forgotPassword(string nCode, string newPassword, string reNewPassword);
 };
 
 #endif
