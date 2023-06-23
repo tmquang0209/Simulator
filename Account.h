@@ -36,7 +36,7 @@ public:
     void setList(vector<Info> list);
     vector<Info> getList();
     bool checkInfo(string username);
-    bool checkVerify(vector<string> &, string &);
+    bool checkVerify(const vector<string> &, const string &);
     void readFileAccount();
     void writeFileAccount();
     void printList();

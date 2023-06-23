@@ -2,7 +2,9 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-
+#include <ctime>
+#include <string.h>
+#include <math.h>
 Account::Account()
 {
     isLogin = false;
@@ -232,6 +234,7 @@ int Account::changePassword(string oldPassword, string newPassword, string reNew
     writeFileAccount();
     return 1;
 }
+
 void Account::writeActLog(string username, string actName)
 {
     // Get the current time using the system clock
@@ -258,6 +261,7 @@ void Account::writeActLog(string username, string actName)
         cout << "Can't open file.";
     }
 }
+
 /**
  * @brief Forgot Page
  * *Message error:
@@ -271,18 +275,33 @@ void Account::writeActLog(string username, string actName)
  * @param reNewPassword
  * @return int
  */
-int Account::forgotPage(string nCode, string newPassword, string reNewPassword)
+int Account::forgotPassword(string nCode, string newPassword, string reNewPassword)
 {
-    ifstream f1;
     vector<string> dataCode;
     string verifyCode;
-    f1.open("test.txt");
-    if (!f1)
+    // sending verify code
+    fstream writeFile;
+    char c;
+    int r;
+    srand(time(NULL));
+    writeFile.open("dataCode.txt", ios::out);
+    for (int i = 0; i < 8; i++)
+    {
+        r = rand() % 26;
+        c = 'A' + r;
+        writeFile << c;
+    }
+    writeFile << endl;
+    writeFile.close();
+    // read from file
+    fstream readFile;
+    readFile.open("dataCode.txt", ios::in);
+    if (!readFile)
     {
         cout << "Failed to open the file." << endl;
         return 0;
     }
-    while (getline(f1, verifyCode))
+    while (getline(readFile, verifyCode))
     {
         dataCode.push_back(verifyCode);
     }
@@ -295,6 +314,7 @@ int Account::forgotPage(string nCode, string newPassword, string reNewPassword)
     }
     else
         return -1;
+    readFile.close();
     if (newPassword != reNewPassword)
     {
         return -2;

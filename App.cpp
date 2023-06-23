@@ -2,6 +2,7 @@
 #include <cstring>
 #include <windows.h>
 #include <unistd.h>
+#include <conio.h> // Include the conio.h header for _getch() function
 #include "Account.h"
 #include "Account.cpp"
 
@@ -11,10 +12,11 @@ int width, height;
 
 void gotoxy(int x, int y);
 void drawBox(int x, int y, int width, int height);
-void home(int width, int height);
-void login(int width, int height);
-void changePassword(int width, int height);
-void forgotPassword(int width, int height);
+void home();
+void login();
+void changePassword();
+void forgotPassword();
+void forgotPage();
 int main()
 {
     // Ẩn hiện con trỏ nhấp nháy
@@ -29,7 +31,7 @@ int main()
     GetConsoleScreenBufferInfo(consoleHandle, &csbi);
     int width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
     int height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-    login(width, height);
+    login();
     return 0;
 }
 
@@ -56,13 +58,13 @@ void drawBox(int x, int y, int width, int height)
     }
 }
 
-void home(int width, int height)
+void home()
 {
     system("cls");
     cout << "Menu" << endl;
 }
 
-void login(int width, int height)
+void login()
 {
     // Tạo một cửa sổ con để hiển thị giao diện đăng nhập
     int loginWinHeight = 8;
@@ -116,7 +118,7 @@ void login(int width, int height)
             cout << "You need to change password." << endl;
             sleep(3);
             system("cls");
-            changePassword(width, height);
+            changePassword();
         }
         else if (msg == -4)
             cout << "Your account has been ban." << endl;
@@ -124,14 +126,14 @@ void login(int width, int height)
         {
             cout << "Login success." << endl;
             sleep(2);
-            home(width, height);
+            home();
         }
         else
             cout << "Unknown Error." << endl;
     }
 }
 
-void changePassword(int width, int height)
+void changePassword()
 {
     // Tạo một cửa sổ con để hiển thị giao diện đăng nhập
     int changePasswordWinHeight = 10;
@@ -151,7 +153,7 @@ void changePassword(int width, int height)
     cout << "New Password: ";
 
     gotoxy(changePasswordWinX + 2, changePasswordWinY + 6);
-    cout << "Renew Passwrod : ";
+    cout << "Renew Password : ";
 
     char oldPassword[20];
     char newPassword[20];
@@ -179,14 +181,14 @@ void changePassword(int width, int height)
             cout << "Password has to be at least 8 letter." << endl;
         else if (msg == -4)
             cout << "Password have at least 1 number and 1 special letter." << endl;
-        changePassword(width, height);
+        changePassword();
     }
     else
     {
         system("cls");
         cout << "Change password success!" << endl;
         sleep(2);
-        home(width, height);
+        home();
     }
 }
 
@@ -294,12 +296,12 @@ void accountInformation()
         break;
     }
 }
-
+/*
 void updateAccount()
 {
 }
-
-void forgotPassword()
+*/
+void forgotPage()
 {
     int forgotPageWinHeight = 10;
     int forgotPageWinWidth = 50;
@@ -361,8 +363,8 @@ void forgotPassword()
         default:
             break;
         }
-        int msg = account.forgotPassword(type, username)
-                      gotoxy(forgotPageWinx + 2, forgotPageWinY + 3);
+        int msg = account.forgotPassword(emailPhoneNum, username);
+        gotoxy(forgotPageWinx + 2, forgotPageWinY + 3);
         if (msg != 1)
         {
             system("cls");
@@ -385,7 +387,7 @@ void forgotPassword()
         }
     }
 }
-void forgotPage()
+void forgotPassword()
 {
     int forgotPageWinHeight = 10;
     int forgotPageWinWidth = 50;
@@ -404,7 +406,7 @@ void forgotPage()
     cout << "New Password: ";
 
     gotoxy(forgotPageWinx + 5, forgotPageWinY + 6);
-    cout << "Renew Passwrod : ";
+    cout << "Renew Password : ";
 
     char nCode[20];
     char newPassword[20];
@@ -458,7 +460,7 @@ void forgotPage()
             break;
         }
 
-        int msg = account.forgotPage(nCode, newPassword, reNewPassword);
+        int msg = account.forgotPassword(nCode, newPassword, reNewPassword);
         gotoxy(forgotPageWinx + 2, forgotPageWinY + 3);
         if (msg != 1)
         {
