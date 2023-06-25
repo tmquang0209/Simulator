@@ -2,20 +2,26 @@
 #include <cstring>
 #include <windows.h>
 #include <unistd.h>
+#include <conio.h> // Include the conio.h header for _getch() function
 #include "Account.h"
 #include "Account.cpp"
 
 using namespace std;
+
 Account account;
 int width, height;
 string previousName;
 
 void gotoxy(int x, int y);
 void drawBox(int x, int y, int width, int height);
-void home(int width, int height);
-void login(int width, int height);
-void changePassword(int width, int height);
-void forgotPassword(int width, int height);
+void back();
+void home();
+void login();
+void changePassword();
+void accountInformation();
+void updateAccount();
+void forgotPassword();
+
 int main()
 {
     // Ẩn hiện con trỏ nhấp nháy
@@ -202,32 +208,8 @@ void login()
         }
     }
 
-    gotoxy(loginWinX + 2, loginWinY + 4);
-    cout << "Username: ";
-
-    gotoxy(loginWinX + 2, loginWinY + 5);
-    cout << "Password: ";
-
-    char username[20];
-    char password[20];
-
-    gotoxy(loginWinX + 18, loginWinY + 4);
-    cin >> username;
-
-    gotoxy(loginWinX + 18, loginWinY + 5);
-    // Vô hiệu hóa hiển thị ký tự trên màn hình
-    DWORD mode;
-    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
-    GetConsoleMode(handle, &mode);
-    SetConsoleMode(handle, mode & ~ENABLE_ECHO_INPUT);
-    cin >> password;
-    // Bật lại hiển thị ký tự trên màn hình
-    SetConsoleMode(handle, mode);
-
-    int selectedOption = 1;      // Store the currently selected option
-    bool optionSelected = false; // Flag to indicate if an option is selected
-
-    while (!optionSelected)
+    int msg = account.checkInfo(username, password);
+    switch (selectedOption)
     {
     case 1:
         if (username == NULL || password == NULL)
@@ -252,6 +234,8 @@ void login()
             {
                 cout << "Login success." << endl;
                 account.writeActLog(username, "login success.");
+
+                SetConsoleTextAttribute(hConsole, 15);
                 sleep(2);
                 home();
             }
@@ -303,32 +287,192 @@ void changePassword()
     gotoxy(changePasswordWinX + 25, changePasswordWinY + 6);
     cin >> reNewPassword;
 
-    int msg = account.changePassword(oldPassword, newPassword, reNewPassword);
-    gotoxy(changePasswordWinX + 2, changePasswordWinY + 3);
-    if (msg != 1)
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+
+    while (!optionSelected)
     {
-        system("cls");
-        if (msg == -1)
-            cout << "Old password is incorrect, Check again!" << endl;
-        else if (msg == -2)
-            cout << "New password aren't same with the new one." << endl;
-        else if (msg == -3)
-            cout << "Password has to be at least 8 letter." << endl;
-        else if (msg == -4)
-            cout << "Password have at least 1 number and 1 special letter." << endl;
-        changePassword(width, height);
+        // Print the menu options
+        gotoxy(changePasswordWinX + 10, changePasswordWinY + 8);
+        if (selectedOption == 1)
+            cout << "[ Submit ]";
+        else
+            cout << "  Submit  ";
+
+        gotoxy(changePasswordWinX + 10, changePasswordWinY + 9);
+        if (selectedOption == 2)
+            cout << "[ Back ]";
+        else
+            cout << "  Back  ";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        switch (key)
+        {
+        case 72: // Up arrow key
+            if (selectedOption > 1)
+                selectedOption--;
+            break;
+        case 80: // Down arrow key
+            if (selectedOption < 4)
+                selectedOption++;
+            break;
+        case 13: // Enter key
+            optionSelected = true;
+            break;
+        default:
+            break;
+        }
     }
-    else
+
+    int msg = account.changePassword(oldPassword, newPassword, reNewPassword);
+    // Process the selected option
+    switch (selectedOption)
     {
-        system("cls");
-        cout << "Change password success!" << endl;
-        sleep(2);
-        home(width, height);
+    case 1:
+        gotoxy(changePasswordWinX + 2, changePasswordWinY + 3);
+        if (msg != 1)
+        {
+            gotoxy(changePasswordWinX + 2, changePasswordWinY + 3);
+            if (msg == -1)
+                cout << "Old password is incorrect, Check again!" << endl;
+            else if (msg == -2)
+                cout << "New password aren't same with the new one." << endl;
+            else if (msg == -3)
+                cout << "Password has to be at least 8 letter." << endl;
+            else if (msg == -4)
+                cout << "Password have at least 1 number and 1 special letter." << endl;
+
+            sleep(3);
+            changePassword();
+        }
+        else
+        {
+            system("cls");
+            cout << "Change password success!" << endl;
+            sleep(2);
+            home();
+        }
+        break;
+    case 2:
+        back();
+        previousName = "ChangePassword";
+        break;
+    default:
+        break;
     }
 }
 
-void updateAccount()
+void accountInformation()
 {
+    system("cls");
+
+    int accountInfoWinHeight = 15;
+    int accountInfoWinWidth = 50;
+    int accountInfoWinY = (height - accountInfoWinHeight) / 2;
+    int accountInfoWinX = (width - accountInfoWinWidth) / 2;
+
+    drawBox(accountInfoWinX, accountInfoWinY, accountInfoWinWidth, accountInfoWinHeight);
+
+    gotoxy(accountInfoWinX + 2, accountInfoWinY + 2);
+    cout << "\t\tAccount information";
+
+    gotoxy(accountInfoWinX + 5, accountInfoWinY + 4);
+    cout << "Fullname: ";
+    gotoxy(accountInfoWinX + 5, accountInfoWinY + 5);
+    cout << "Email: ";
+    gotoxy(accountInfoWinX + 5, accountInfoWinY + 6);
+    cout << "Phone number: ";
+    gotoxy(accountInfoWinX + 5, accountInfoWinY + 7);
+    cout << "Username: ";
+    gotoxy(accountInfoWinX + 5, accountInfoWinY + 8);
+    cout << "Type account: ";
+
+    gotoxy(accountInfoWinX + 20, accountInfoWinY + 4);
+    cout << account.getInfo().fullName;
+
+    gotoxy(accountInfoWinX + 20, accountInfoWinY + 5);
+    cout << account.getInfo().email;
+
+    gotoxy(accountInfoWinX + 20, accountInfoWinY + 6);
+    cout << account.getInfo().phoneNumber;
+
+    gotoxy(accountInfoWinX + 20, accountInfoWinY + 7);
+    cout << account.getInfo().username;
+
+    gotoxy(accountInfoWinX + 20, accountInfoWinY + 8);
+    cout << account.getInfo().typeAccount;
+
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(accountInfoWinX + 10, accountInfoWinY + 11);
+        if (selectedOption == 1)
+            cout << "[ Update information ]";
+        else
+            cout << "  Update information  ";
+
+        gotoxy(accountInfoWinX + 10, accountInfoWinY + 12);
+        if (selectedOption == 2)
+            cout << "[ Change password ]";
+        else
+            cout << "  Change password  ";
+
+        gotoxy(accountInfoWinX + 10, accountInfoWinY + 13);
+        if (selectedOption == 3)
+            cout << "[ Back ]";
+        else
+            cout << "  Back  ";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        switch (key)
+        {
+        case 72: // Up arrow key
+            if (selectedOption > 1)
+                selectedOption--;
+            break;
+        case 80: // Down arrow key
+            if (selectedOption < 4)
+                selectedOption++;
+            break;
+        case 13: // Enter key
+            optionSelected = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    // Process the selected option
+    switch (selectedOption)
+    {
+    case 1:
+        previousName = "AccountInfo";
+        updateAccount();
+        break;
+    case 2:
+        previousName = "AccountInfo";
+        changePassword();
+        break;
+    case 3:
+        back();
+        break;
+    default:
+        break;
+    }
+}
+
+void updateAccount(string username)
+{
+    cout << "Test merge";
 }
 
 void forgotPassword()
