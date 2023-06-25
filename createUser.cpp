@@ -11,7 +11,7 @@ int width, height;
 void gotoxy(int x, int y);
 void drawBox(int x, int y, int width, int height);
 void signUp(int width, int height);
-void saveUserToFile(const string& filename, const string& name, const string& gmail, const string& phoneNumber, const string& account, const string& passWord);
+void saveUserToFile(const string& filename, const string& name, const string& gmail, const string& phoneNumber, const string& account, const string& passWord, const string& S_A);
 bool hasUppercase(const string& str);
 bool hasLowercase(const string& str);
 bool hasDigit(const string& str);
@@ -46,31 +46,46 @@ void gotoxy(int x, int y)
 
 void drawBox(int x, int y, int width, int height)
 {
-    for (int i = 0; i < height; i++)
+    // Top border
+    gotoxy(x, y);
+    cout << char(218);  // Top left corner
+    for (int i = 1; i < width - 1; i++)
+        cout << char(196);  // Horizontal line
+    cout << char(191);  // Top right corner
+
+    // Side borders
+    for (int i = 1; i < height - 1; i++)
     {
-        for (int j = 0; j < width; j++)
-        {
-            if (i == 0 || i == height - 1 || j == 0 || j == width - 1)
-            {
-                gotoxy(x + j, y + i);
-                cout << "*";
-            }
-        }
+        gotoxy(x, y + i);
+        cout << char(179);  // Vertical line
+
+        gotoxy(x + width - 1, y + i);
+        cout << char(179);  // Vertical line
     }
+
+    // Bottom border
+    gotoxy(x, y + height - 1);
+    cout << char(192);  // Bottom left corner
+    for (int i = 1; i < width - 1; i++)
+        cout << char(196);  // Horizontal line
+    cout << char(217);  // Bottom right corner
 }
 
 void signUp(int width, int height)
 {
     // Tạo một cửa sổ con để hiển thị giao diện đăng nhập
-    int loginWinHeight = 12; // Tăng chiều cao cửa sổ đăng nhập để chứa thêm các trường thông tin
-    int loginWinWidth = 40;
+    int loginWinHeight = 13; // Tăng chiều cao cửa sổ đăng nhập để chứa thêm các trường thông tin
+    int loginWinWidth = 56;
     int loginWinY = (height - loginWinHeight) / 2;
     int loginWinX = (width - loginWinWidth) / 2;
 
     drawBox(loginWinX, loginWinY, loginWinWidth, loginWinHeight);
+    
+    // Tính toán vị trí x cho nội dung "Fill your information" để canh giữa
+    int fillInfoX = loginWinX + (loginWinWidth - 19) / 2; // 19 là độ dài chuỗi "Fill your information"
 
-    gotoxy(loginWinX + 2, loginWinY + 2);
-    cout << "\tFill your information";
+    gotoxy(fillInfoX, loginWinY + 2);
+    cout << "Fill your information";
 
     gotoxy(loginWinX + 2, loginWinY + 4);
     cout << "Full name: ";
@@ -90,7 +105,10 @@ void signUp(int width, int height)
     gotoxy(loginWinX + 2, loginWinY + 9);
     cout << "Confirm password: ";
 
-    string name, gmail, phoneNumber, account, passWord, confirmPassword;
+    gotoxy(loginWinX + 2, loginWinY + 10);
+    cout << "Account type: ";
+
+    string name, gmail, phoneNumber, account, passWord, confirmPassword, S_A;
 
     gotoxy(loginWinX + 20, loginWinY + 4);
     getline(cin, name);
@@ -166,6 +184,9 @@ void signUp(int width, int height)
         getline(cin, confirmPassword);
     }
 
+    gotoxy(loginWinX + 20, loginWinY + 10);
+    getline(cin, S_A);
+
     // Lưu thông tin người dùng vào file
     if (name.empty() || gmail.empty() || phoneNumber.empty() || account.empty() || passWord.empty() || confirmPassword.empty())
     {
@@ -173,19 +194,19 @@ void signUp(int width, int height)
     }
     else
     {
-        saveUserToFile("./data/info.txt", name, gmail, phoneNumber, account, passWord);
+        saveUserToFile("./data/info.txt", name, gmail, phoneNumber, account, passWord, S_A);
         system("cls");
         cout << "User information saved" << endl;
     }
 }
 
-void saveUserToFile(const string& filename, const string& name, const string& gmail, const string& phoneNumber, const string& account, const string& passWord)
+void saveUserToFile(const string& filename, const string& name, const string& gmail, const string& phoneNumber, const string& account, const string& passWord, const string& S_A)
 {
     ofstream fout(filename, ios::app); // Mở file để ghi dữ liệu ở cuối file
 
     if (fout.is_open())
     {
-        fout << name << "|" << gmail << "|" << phoneNumber << "|" << account << "|" << passWord << "|0|0|";
+        fout << name << "|" << gmail << "|" << phoneNumber << "|" << account << "|" << passWord << "|" << S_A << "|0|0|";
         fout << endl;
         fout.close();
     }
