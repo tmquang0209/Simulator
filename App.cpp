@@ -625,11 +625,17 @@ void updateAccount(string username)
         }
     }
 
+    gotoxy(accountWinX + 2, accountWinY + 3);
+    SetConsoleTextAttribute(hConsole, 14);
     // Process the selected option
     switch (selectedOption)
     {
     case 1:
         account.updateInfo(username, fullName, email, phoneNumber);
+        cout << "Update information success." << endl;
+        SetConsoleTextAttribute(hConsole, 15);
+        sleep(3);
+        accountInformation();
         break;
     case 2:
         changePassword();

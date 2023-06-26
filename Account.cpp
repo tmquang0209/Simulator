@@ -189,6 +189,10 @@ void Account::updateInfo(string username, string fullName, string email, string 
             info.fullName = fullName;
             info.email = email;
             info.phoneNumber = phoneNumber;
+            if (list[i].username == username)
+            {
+                list[i] = info;
+            }
             writeActLog(info.username, " update information.");
             break;
         }
