@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <utility>
 
 using namespace std;
 
@@ -45,6 +46,7 @@ public:
     int changePassword(string oldPassword, string newPassword, string reNewPassword);
     void writeActLog(string username, string actName);
     int forgotPassword(string username, int type);
+    void activityLog(vector<pair<string, string>> &data, string username = "");
 };
 
 #endif

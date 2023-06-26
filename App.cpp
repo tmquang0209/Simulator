@@ -24,6 +24,8 @@ void changePassword();
 void accountInformation();
 void updateAccount(string username);
 void forgotPassword();
+void activityLog();
+void activityLog(string username);
 
 int main()
 {
@@ -39,6 +41,22 @@ int main()
     GetConsoleScreenBufferInfo(consoleHandle, &csbi);
     width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
     height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+
+    // Thiết lập kích thước cho vùng cửa sổ cuộn
+    SMALL_RECT scrollRect;
+    scrollRect.Left = 0;
+    scrollRect.Top = 0;
+    scrollRect.Right = width - 1;
+    scrollRect.Bottom = height - 1;
+
+    // Thiết lập kích thước bộ đệm cho vùng cửa sổ cuộn
+    COORD scrollBufferSize;
+    scrollBufferSize.X = width;
+    scrollBufferSize.Y = height;
+
+    // Thiết lập vùng cửa sổ cuộn
+    SetConsoleWindowInfo(consoleHandle, TRUE, &scrollRect);
+    SetConsoleScreenBufferSize(consoleHandle, scrollBufferSize);
     login();
     return 0;
 }
@@ -155,6 +173,7 @@ void home()
         break;
     case 3:
         // Handle Activity logs option
+        activityLog();
         break;
     case 4:
         // Handle Logout option
@@ -649,5 +668,63 @@ void updateAccount(string username)
 }
 
 void forgotPassword()
+{
+}
+
+void activityLog()
+{
+    system("cls");
+    vector<pair<string, string>> data;
+    account.activityLog(data);
+
+    int accountWinHeight = 10 + data.size();
+    int accountWinWidth = 60;
+    int accountWinY = (height - accountWinHeight) / 3;
+    int accountWinX = (width - accountWinWidth) / 2;
+
+    drawBox(accountWinX, accountWinY, accountWinWidth, accountWinHeight);
+
+    gotoxy(accountWinX + 5, accountWinY + 2);
+    cout << "\t\tActivity log";
+
+    int i;
+    for (i = 0; i < data.size(); i++)
+    {
+        gotoxy(accountWinX + 2, accountWinY + 4 + i);
+        cout << data[i].first << ":\t" << data[i].second;
+    }
+
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(accountWinX + 2, accountWinY + accountWinHeight - 5);
+        if (selectedOption == 1)
+            cout << "[ Back ]";
+        else
+            cout << "  Back  ";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        if (key == 13)
+            optionSelected = true;
+    }
+
+    // Process the selected option
+    switch (selectedOption)
+    {
+    case 1:
+        back();
+        break;
+    default:
+        break;
+    }
+}
+
+void activityLog(string username)
 {
 }
