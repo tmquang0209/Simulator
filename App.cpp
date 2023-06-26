@@ -13,7 +13,7 @@ HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 Account account;
 int width, height;
-string previousName;
+vector<string> previousPage;
 
 void gotoxy(int x, int y);
 void drawBox(int x, int y, int width, int height);
@@ -84,22 +84,37 @@ void drawBox(int x, int y, int width, int height)
     }
 }
 
+/**
+ * @brief back to previous page
+ * Home
+ * AccountInfo
+ * ChangePassword
+ * UpdateAccount
+ * ActivityLog
+ */
 void back()
 {
+    string previousName = previousPage[previousPage.size() - 1];
     if (previousName == "Home")
-    {
         home();
-    }
 
     if (previousName == "AccountInfo")
-    {
         accountInformation();
-    }
+
+    if (previousName == "ChangePassword")
+        changePassword();
+
+    if (previousName == "UpdateAccount")
+        updateAccount(account.getInfo().username);
+
+    if (previousName == "ActivityLog")
+        activityLog();
 }
 
 void home()
 {
     system("cls");
+    previousPage.push_back("Home");
 
     // Tạo một cửa sổ con để hiển thị giao diện đăng nhập
     int homeWinHeight = 10;
@@ -308,6 +323,8 @@ void login()
 void changePassword()
 {
     system("cls");
+    previousPage.push_back("ChangePassword");
+
     // Tạo một cửa sổ con để hiển thị giao diện đăng nhập
     int changePasswordWinHeight = 13;
     int changePasswordWinWidth = 50;
@@ -411,8 +428,8 @@ void changePassword()
         }
         break;
     case 2:
+        previousPage.pop_back();
         back();
-        previousName = "ChangePassword";
         break;
     default:
         break;
@@ -422,6 +439,7 @@ void changePassword()
 void accountInformation()
 {
     system("cls");
+    previousPage.push_back("AccountInfo");
 
     int accountInfoWinHeight = 15;
     int accountInfoWinWidth = 50;
@@ -509,14 +527,13 @@ void accountInformation()
     switch (selectedOption)
     {
     case 1:
-        previousName = "AccountInfo";
         updateAccount(account.getInfo().username);
         break;
     case 2:
-        previousName = "AccountInfo";
         changePassword();
         break;
     case 3:
+        previousPage.pop_back();
         back();
         break;
     default:
@@ -527,6 +544,8 @@ void accountInformation()
 void updateAccount(string username)
 {
     system("cls");
+    previousPage.push_back("UpdateAccount");
+
     int accountWinHeight = 15;
     int accountWinWidth = 50;
     int accountWinY = (height - accountWinHeight) / 2;
@@ -657,7 +676,8 @@ void updateAccount(string username)
         accountInformation();
         break;
     case 2:
-        changePassword();
+        previousPage.pop_back();
+        back();
         break;
     case 3:
         back();
@@ -674,6 +694,8 @@ void forgotPassword()
 void activityLog()
 {
     system("cls");
+    previousPage.push_back("ActivityLog");
+
     vector<pair<string, string>> data;
     account.activityLog(data);
 
@@ -718,6 +740,7 @@ void activityLog()
     switch (selectedOption)
     {
     case 1:
+        previousPage.pop_back();
         back();
         break;
     default:
