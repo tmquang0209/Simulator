@@ -472,7 +472,139 @@ void accountInformation()
 
 void updateAccount(string username)
 {
-    cout << "Test merge";
+    system("cls");
+    int accountWinHeight = 15;
+    int accountWinWidth = 50;
+    int accountWinY = (height - accountWinHeight) / 2;
+    int accountWinX = (width - accountWinWidth) / 2;
+
+    drawBox(accountWinX, accountWinY, accountWinWidth, accountWinHeight);
+
+    gotoxy(accountWinX + 2, accountWinY + 2);
+    cout << "\t\tChange information";
+
+    // Info
+    string fullName = account.getInfo().fullName;
+    string email = account.getInfo().email;
+    string phoneNumber = account.getInfo().phoneNumber;
+
+    gotoxy(accountWinX + 5, accountWinY + 4);
+    cout << "Full name: ";
+    cout << fullName;
+
+    char ch;
+    while ((ch = _getch()) != '\r')
+    {
+        if (ch == '\b')
+        {
+            if (!fullName.empty())
+            {
+                cout << "\b \b";
+                fullName.pop_back();
+            }
+        }
+        else
+        {
+            cout << ch;
+            fullName += ch;
+        }
+    }
+
+    gotoxy(accountWinX + 5, accountWinY + 5);
+    cout << "Phone number: ";
+    cout << phoneNumber;
+    while ((ch = _getch()) != '\r')
+    {
+        if (ch == '\b')
+        {
+            if (!phoneNumber.empty())
+            {
+                cout << "\b \b";
+                phoneNumber.pop_back();
+            }
+        }
+        else
+        {
+            cout << ch;
+            phoneNumber += ch;
+        }
+    }
+
+    gotoxy(accountWinX + 5, accountWinY + 6);
+    cout << "Email: ";
+    cout << email;
+    while ((ch = _getch()) != '\r')
+    {
+        if (ch == '\b')
+        {
+            if (!email.empty())
+            {
+                cout << "\b \b";
+                email.pop_back();
+            }
+        }
+        else
+        {
+            cout << ch;
+            email += ch;
+        }
+    }
+
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(accountWinX + 10, accountWinY + 11);
+        if (selectedOption == 1)
+            cout << "[ Submit ]";
+        else
+            cout << "  Submit  ";
+
+        gotoxy(accountWinX + 10, accountWinY + 12);
+        if (selectedOption == 2)
+            cout << "[ Cancel ]";
+        else
+            cout << "  Cancel  ";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        switch (key)
+        {
+        case 72: // Up arrow key
+            if (selectedOption > 1)
+                selectedOption--;
+            break;
+        case 80: // Down arrow key
+            if (selectedOption < 4)
+                selectedOption++;
+            break;
+        case 13: // Enter key
+            optionSelected = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    // Process the selected option
+    switch (selectedOption)
+    {
+    case 1:
+        account.updateInfo(username, fullName, email, phoneNumber);
+        break;
+    case 2:
+        changePassword();
+        break;
+    case 3:
+        back();
+        break;
+    default:
+        break;
+    }
 }
 
 void forgotPassword()
