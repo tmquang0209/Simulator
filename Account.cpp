@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <utility>
 #include <ctime>
 #include <chrono>
 #include <iomanip>
@@ -189,6 +190,10 @@ void Account::updateInfo(string username, string fullName, string email, string 
             info.fullName = fullName;
             info.email = email;
             info.phoneNumber = phoneNumber;
+            if (list[i].username == username)
+            {
+                list[i] = info;
+            }
             writeActLog(info.username, " update information.");
             break;
         }
@@ -197,7 +202,7 @@ void Account::updateInfo(string username, string fullName, string email, string 
             list[i].fullName = fullName;
             list[i].email = email;
             list[i].phoneNumber = phoneNumber;
-            writeActLog(info.username, " update information of " + username);
+            writeActLog(info.username, "update information of " + username);
             break;
         }
     }
@@ -278,11 +283,32 @@ void Account::writeActLog(string username, string actName)
 
     if (fout.is_open())
     {
-        fout << buffer << ": " << actName << endl;
+        fout << buffer << "|" << actName << endl;
         fout.close();
     }
     else
     {
         cout << "Can't open file.";
+    }
+}
+
+void Account::activityLog(vector<pair<string, string>> &data, string username)
+{
+    username = (username == "") ? info.username : username;
+    fstream f;
+    f.open("./log/" + username + ".txt", ios::in);
+
+    string line;
+    int index = 0;
+    while (getline(f, line))
+    {
+        istringstream iss(line);
+
+        string time, event;
+        getline(iss, time, '|');
+        getline(iss, event, '|');
+
+        data.emplace_back(time, event);
+        index++;
     }
 }
