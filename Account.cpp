@@ -173,6 +173,42 @@ int Account::checkInfo(string username, string password)
 }
 
 /**
+ * @brief update account info by username
+ *
+ * @param username
+ * @param fullName
+ * @param email
+ * @param phoneNumber
+ */
+void Account::updateInfo(string username, string fullName, string email, string phoneNumber)
+{
+    for (int i = 0; i < list.size(); i++)
+    {
+        if (info.username == username)
+        {
+            info.fullName = fullName;
+            info.email = email;
+            info.phoneNumber = phoneNumber;
+            if (list[i].username == username)
+            {
+                list[i] = info;
+            }
+            writeActLog(info.username, " update information.");
+            break;
+        }
+        else if (list[i].username == username)
+        {
+            list[i].fullName = fullName;
+            list[i].email = email;
+            list[i].phoneNumber = phoneNumber;
+            writeActLog(info.username, " update information of " + username);
+            break;
+        }
+    }
+    writeFileAccount();
+}
+
+/**
  * @brief Change password
  * *Message error:
  * 1: Success
@@ -239,7 +275,7 @@ void Account::writeActLog(string username, string actName)
     strftime(buffer, sizeof(buffer), "%H:%M:%S %d-%m-%Y", localtime(&currentTime));
 
     // Print the formatted time
-    cout << "Current time: " << buffer << endl;
+    // cout << "Current time: " << buffer << endl;
 
     fstream fout;
     fout.open("./log/" + username + ".txt", ios::app);

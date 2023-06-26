@@ -36,6 +36,7 @@ public:
     void setList(vector<Info> list);
     vector<Info> getList();
     bool checkInfo(string username);
+    void updateInfo(string username, string fullName, string email, string phoneNumber);
     void readFileAccount();
     void writeFileAccount();
     void printList();

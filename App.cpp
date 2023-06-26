@@ -2,11 +2,14 @@
 #include <cstring>
 #include <windows.h>
 #include <unistd.h>
+#include <conio.h>
 #include <conio.h> // Include the conio.h header for _getch() function
 #include "Account.h"
 #include "Account.cpp"
 
 using namespace std;
+
+HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 Account account;
 int width, height;
@@ -19,7 +22,7 @@ void home();
 void login();
 void changePassword();
 void accountInformation();
-void updateAccount();
+void updateAccount(string username);
 void forgotPassword();
 
 int main()
@@ -176,28 +179,6 @@ void login()
     gotoxy(loginWinX + 2, loginWinY + 2);
     cout << "\tLogin";
 
-    gotoxy(loginWinX + 2, loginWinY + 4);
-    cout << "Username: ";
-
-    gotoxy(loginWinX + 2, loginWinY + 5);
-    cout << "Password: ";
-
-    char username[20];
-    char password[20];
-
-    gotoxy(loginWinX + 18, loginWinY + 4);
-    cin >> username;
-
-    gotoxy(loginWinX + 18, loginWinY + 5);
-    // Vô hiệu hóa hiển thị ký tự trên màn hình
-    DWORD mode;
-    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
-    GetConsoleMode(handle, &mode);
-    SetConsoleMode(handle, mode & ~ENABLE_ECHO_INPUT);
-    cin >> password;
-    // Bật lại hiển thị ký tự trên màn hình
-    SetConsoleMode(handle, mode);
-
     int selectedOption = 1;      // Store the currently selected option
     bool optionSelected = false; // Flag to indicate if an option is selected
 
@@ -227,7 +208,7 @@ void login()
                 selectedOption--;
             break;
         case 80: // Down arrow key
-            if (selectedOption < 4)
+            if (selectedOption < 3)
                 selectedOption++;
             break;
         case 13: // Enter key
@@ -238,6 +219,30 @@ void login()
         }
     }
 
+    gotoxy(loginWinX + 2, loginWinY + 4);
+    cout << "Username: ";
+
+    gotoxy(loginWinX + 2, loginWinY + 5);
+    cout << "Password: ";
+
+    char username[20];
+    char password[20];
+
+    gotoxy(loginWinX + 18, loginWinY + 4);
+    cin >> username;
+
+    gotoxy(loginWinX + 18, loginWinY + 5);
+    // Vô hiệu hóa hiển thị ký tự trên màn hình
+    DWORD mode;
+    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
+    GetConsoleMode(handle, &mode);
+    SetConsoleMode(handle, mode & ~ENABLE_ECHO_INPUT);
+    cin >> password;
+    // Bật lại hiển thị ký tự trên màn hình
+    SetConsoleMode(handle, mode);
+
+    gotoxy(loginWinX + 2, loginWinY + 3);
+    SetConsoleTextAttribute(hConsole, 14);
     int msg = account.checkInfo(username, password);
     switch (selectedOption)
     {
@@ -264,6 +269,8 @@ void login()
             {
                 cout << "Login success." << endl;
                 account.writeActLog(username, "login success.");
+
+                SetConsoleTextAttribute(hConsole, 15);
                 sleep(2);
                 home();
             }
@@ -344,7 +351,7 @@ void changePassword()
                 selectedOption--;
             break;
         case 80: // Down arrow key
-            if (selectedOption < 4)
+            if (selectedOption < 3)
                 selectedOption++;
             break;
         case 13: // Enter key
@@ -484,7 +491,7 @@ void accountInformation()
     {
     case 1:
         previousName = "AccountInfo";
-        updateAccount();
+        updateAccount(account.getInfo().username);
         break;
     case 2:
         previousName = "AccountInfo";
@@ -498,8 +505,147 @@ void accountInformation()
     }
 }
 
-void updateAccount()
+void updateAccount(string username)
 {
+    system("cls");
+    int accountWinHeight = 15;
+    int accountWinWidth = 50;
+    int accountWinY = (height - accountWinHeight) / 2;
+    int accountWinX = (width - accountWinWidth) / 2;
+
+    drawBox(accountWinX, accountWinY, accountWinWidth, accountWinHeight);
+
+    gotoxy(accountWinX + 2, accountWinY + 2);
+    cout << "\t\tChange information";
+
+    // Info
+    string fullName = account.getInfo().fullName;
+    string email = account.getInfo().email;
+    string phoneNumber = account.getInfo().phoneNumber;
+
+    gotoxy(accountWinX + 5, accountWinY + 4);
+    cout << "Full name: ";
+    cout << fullName;
+
+    char ch;
+    while ((ch = _getch()) != '\r')
+    {
+        if (ch == '\b')
+        {
+            if (!fullName.empty())
+            {
+                cout << "\b \b";
+                fullName.pop_back();
+            }
+        }
+        else
+        {
+            cout << ch;
+            fullName += ch;
+        }
+    }
+
+    gotoxy(accountWinX + 5, accountWinY + 5);
+    cout << "Phone number: ";
+    cout << phoneNumber;
+    while ((ch = _getch()) != '\r')
+    {
+        if (ch == '\b')
+        {
+            if (!phoneNumber.empty())
+            {
+                cout << "\b \b";
+                phoneNumber.pop_back();
+            }
+        }
+        else
+        {
+            cout << ch;
+            phoneNumber += ch;
+        }
+    }
+
+    gotoxy(accountWinX + 5, accountWinY + 6);
+    cout << "Email: ";
+    cout << email;
+    while ((ch = _getch()) != '\r')
+    {
+        if (ch == '\b')
+        {
+            if (!email.empty())
+            {
+                cout << "\b \b";
+                email.pop_back();
+            }
+        }
+        else
+        {
+            cout << ch;
+            email += ch;
+        }
+    }
+
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(accountWinX + 10, accountWinY + 11);
+        if (selectedOption == 1)
+            cout << "[ Submit ]";
+        else
+            cout << "  Submit  ";
+
+        gotoxy(accountWinX + 10, accountWinY + 12);
+        if (selectedOption == 2)
+            cout << "[ Cancel ]";
+        else
+            cout << "  Cancel  ";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        switch (key)
+        {
+        case 72: // Up arrow key
+            if (selectedOption > 1)
+                selectedOption--;
+            break;
+        case 80: // Down arrow key
+            if (selectedOption < 4)
+                selectedOption++;
+            break;
+        case 13: // Enter key
+            optionSelected = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    gotoxy(accountWinX + 2, accountWinY + 3);
+    SetConsoleTextAttribute(hConsole, 14);
+    // Process the selected option
+    switch (selectedOption)
+    {
+    case 1:
+        account.updateInfo(username, fullName, email, phoneNumber);
+        cout << "Update information success." << endl;
+        SetConsoleTextAttribute(hConsole, 15);
+        sleep(3);
+        accountInformation();
+        break;
+    case 2:
+        changePassword();
+        break;
+    case 3:
+        back();
+        break;
+    default:
+        break;
+    }
 }
 
 void forgotPassword()
