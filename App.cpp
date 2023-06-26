@@ -8,6 +8,8 @@
 
 using namespace std;
 
+HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
 Account account;
 int width, height;
 vector<string> previousPage;
@@ -19,7 +21,7 @@ void home();
 void login();
 void changePassword();
 void accountInformation();
-void updateAccount();
+void updateAccount(string username);
 void forgotPassword();
 void activityLog();
 void activityLog(string username);
@@ -91,6 +93,7 @@ void drawBox(int x, int y, int width, int height)
  */
 void back()
 {
+    string previousName = previousPage[previousPage.size() - 1];
     if (previousName == "Home")
     {
         home();
@@ -243,6 +246,31 @@ void login()
             break;
         }
     }
+
+    gotoxy(loginWinX + 2, loginWinY + 4);
+    cout << "Username: ";
+
+    gotoxy(loginWinX + 2, loginWinY + 5);
+    cout << "Password: ";
+
+    char username[20];
+    char password[20];
+
+    gotoxy(loginWinX + 18, loginWinY + 4);
+    cin >> username;
+
+    gotoxy(loginWinX + 18, loginWinY + 5);
+    // Vô hiệu hóa hiển thị ký tự trên màn hình
+    DWORD mode;
+    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
+    GetConsoleMode(handle, &mode);
+    SetConsoleMode(handle, mode & ~ENABLE_ECHO_INPUT);
+    cin >> password;
+    // Bật lại hiển thị ký tự trên màn hình
+    SetConsoleMode(handle, mode);
+
+    gotoxy(loginWinX + 2, loginWinY + 3);
+    SetConsoleTextAttribute(hConsole, 14);
 
     int msg = account.checkInfo(username, password);
     switch (selectedOption)
@@ -494,7 +522,6 @@ void accountInformation()
     switch (selectedOption)
     {
     case 1:
-        previousName = "AccountInfo";
         updateAccount(account.getInfo().username);
         break;
     case 2:
@@ -636,12 +663,12 @@ void updateAccount(string username)
     {
     case 1:
         account.updateInfo(username, fullName, email, phoneNumber);
-        break;
-    case 2:
+        cout << "Update success.";
         previousPage.pop_back();
         back();
         break;
-    case 3:
+    case 2:
+        previousPage.pop_back();
         back();
         break;
     default:
