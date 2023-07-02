@@ -859,7 +859,7 @@ void forgotPassword()
             login();
         }
     }
-
+}
 
 void activityLog()
 {
