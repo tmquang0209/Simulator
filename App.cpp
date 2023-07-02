@@ -8,6 +8,7 @@
 
 using namespace std;
 
+string checkName; 
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 Account account;
