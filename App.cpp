@@ -8,7 +8,7 @@
 
 using namespace std;
 
-string checkName; 
+string checkName;
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 Account account;
@@ -23,6 +23,7 @@ void login();
 void changePassword();
 void accountInformation();
 void updateAccount(string username);
+void forgotPage();
 void forgotPassword();
 void activityLog();
 void activityLog(string username);
@@ -39,6 +40,7 @@ int main()
     // Lấy kích thước của cửa sổ console
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(consoleHandle, &csbi);
+
     width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
     height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 
@@ -309,7 +311,7 @@ void login()
         }
         break;
     case 2:
-        forgotPassword();
+        forgotPage();
         break;
     default:
         break;
@@ -676,9 +678,187 @@ void updateAccount(string username)
         break;
     }
 }
+void forgotPage()
+{
+    int forgotPageWinHeight = 10;
+    int forgotPageWinWidth = 50;
+    int forgotPageWinY = (height - forgotPageWinHeight) / 2;
+    int forgotPageWinx = (width - forgotPageWinWidth) / 2;
 
+    drawBox(forgotPageWinx, forgotPageWinY, forgotPageWinWidth, forgotPageWinHeight);
+
+    gotoxy(forgotPageWinx + 2, forgotPageWinY + 2);
+    cout << "\t\tForgot Password";
+
+    gotoxy(forgotPageWinx + 2, forgotPageWinY + 4);
+    cout << "Email/PhoneNumber: ";
+
+    gotoxy(forgotPageWinx + 2, forgotPageWinY + 5);
+    cout << "Username: ";
+
+    char emailPhoneNum[30];
+    char username[20];
+    gotoxy(forgotPageWinx + 25, forgotPageWinY + 4);
+    cin >> emailPhoneNum;
+
+    gotoxy(forgotPageWinx + 25, forgotPageWinY + 5);
+    cin >> username;
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(forgotPageWinx + 10, forgotPageWinY + 8);
+        if (selectedOption == 1)
+            cout << "[ Submit ]";
+        else
+            cout << "  Submit  ";
+
+        gotoxy(forgotPageWinx + 10, forgotPageWinY + 9);
+        if (selectedOption == 2)
+            cout << "[ Back ]";
+        else
+            cout << "  Back  ";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        switch (key)
+        {
+        case 72: // Up arrow key
+            if (selectedOption > 1)
+                selectedOption--;
+            break;
+        case 80: // Down arrow key
+            if (selectedOption < 4)
+                selectedOption++;
+            break;
+        case 13: // Enter key
+            optionSelected = true;
+            break;
+        default:
+            break;
+        }
+        int msg = account.forgotPassword(emailPhoneNum, username);
+        gotoxy(forgotPageWinx + 2, forgotPageWinY + 3);
+        if (msg != 1)
+        {
+            system("cls");
+            if (msg == -1)
+            {
+                cout << "Email or phone number is incorrect, please check again!" << endl;
+            }
+            else if (msg == -2)
+            {
+                cout << "Username not found, please check again!" << endl;
+            }
+        }
+        else
+        {
+            system("cls");
+            cout << "Verify and Change your password" << endl;
+            sleep(2);
+            forgotPassword();
+        }
+    }
+}
 void forgotPassword()
 {
+    int forgotPageWinHeight = 10;
+    int forgotPageWinWidth = 50;
+    int forgotPageWinY = (height - forgotPageWinHeight) / 2;
+    int forgotPageWinx = (width - forgotPageWinWidth) / 2;
+
+    drawBox(forgotPageWinx, forgotPageWinY, forgotPageWinWidth, forgotPageWinHeight);
+
+    gotoxy(forgotPageWinx + 2, forgotPageWinY + 2);
+    cout << "\t\tVerify and change";
+
+    gotoxy(forgotPageWinx + 5, forgotPageWinY + 4);
+    cout << "Enter Code: ";
+
+    gotoxy(forgotPageWinx + 5, forgotPageWinY + 5);
+    cout << "New Password: ";
+
+    gotoxy(forgotPageWinx + 5, forgotPageWinY + 6);
+    cout << "Renew Password : ";
+
+    char nCode[20];
+    char newPassword[20];
+    char reNewPassword[20];
+
+    gotoxy(forgotPageWinx + 25, forgotPageWinY + 4);
+    cin >> nCode;
+
+    gotoxy(forgotPageWinx + 25, forgotPageWinY + 5);
+    cin >> newPassword;
+
+    gotoxy(forgotPageWinx + 25, forgotPageWinY + 6);
+    cin >> reNewPassword;
+
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(forgotPageWinx + 10, forgotPageWinY + 8);
+        if (selectedOption == 1)
+            cout << "[ Submit ]";
+        else
+            cout << "  Submit  ";
+
+        gotoxy(forgotPageWinx + 10, forgotPageWinY + 9);
+        if (selectedOption == 2)
+            cout << "[ Back ]";
+        else
+            cout << "  Back  ";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        switch (key)
+        {
+        case 72: // Up arrow key
+            if (selectedOption > 1)
+                selectedOption--;
+            break;
+        case 80: // Down arrow key
+            if (selectedOption < 4)
+                selectedOption++;
+            break;
+        case 13: // Enter key
+            optionSelected = true;
+            break;
+        default:
+            break;
+        }
+
+        int msg = account.forgotPassword(nCode, newPassword, reNewPassword);
+        gotoxy(forgotPageWinx + 2, forgotPageWinY + 3);
+        if (msg != 1)
+        {
+            system("cls");
+            if (msg == -1)
+                cout << "Your verify code is incorrect, please check again!" << endl;
+            else if (msg == -2)
+                cout << "New password aren't same with the new one." << endl;
+            else if (msg == -3)
+                cout << "Password has to be at least 8 letter." << endl;
+            else if (msg == -4)
+                cout << "Password have at least 1 number and 1 special letter." << endl;
+            forgotPage();
+        }
+        else
+        {
+            system("cls");
+            cout << "Change password success!" << endl;
+            sleep(2);
+            login();
+        }
+    }
 }
 
 void activityLog()
