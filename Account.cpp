@@ -186,6 +186,42 @@ int Account::checkInfo(string username, string password)
 }
 
 /**
+ * @brief update account info by username
+ *
+ * @param username
+ * @param fullName
+ * @param email
+ * @param phoneNumber
+ */
+void Account::updateInfo(string username, string fullName, string email, string phoneNumber)
+{
+    for (int i = 0; i < list.size(); i++)
+    {
+        if (info.username == username)
+        {
+            info.fullName = fullName;
+            info.email = email;
+            info.phoneNumber = phoneNumber;
+            if (list[i].username == username)
+            {
+                list[i] = info;
+            }
+            writeActLog(info.username, " update information.");
+            break;
+        }
+        else if (list[i].username == username)
+        {
+            list[i].fullName = fullName;
+            list[i].email = email;
+            list[i].phoneNumber = phoneNumber;
+            writeActLog(info.username, "update information of " + username);
+            break;
+        }
+    }
+    writeFileAccount();
+}
+
+/**
  * @brief Change password
  * *Message error:
  * 1: Success
@@ -241,32 +277,6 @@ int Account::changePassword(string oldPassword, string newPassword, string reNew
     return 1;
 }
 
-void Account::writeActLog(string username, string actName)
-{
-    // Get the current time using the system clock
-    chrono::system_clock::time_point now = chrono::system_clock::now();
-    time_t currentTime = chrono::system_clock::to_time_t(now);
-
-    // Convert the time to a string with the desired format
-    char buffer[80];
-    strftime(buffer, sizeof(buffer), "%H:%M:%S %d-%m-%Y", localtime(&currentTime));
-
-    // Print the formatted time
-    cout << "Current time: " << buffer << endl;
-
-    fstream fout;
-    fout.open("./log/" + username + ".txt", ios::app);
-
-    if (fout.is_open())
-    {
-        fout << buffer << ": " << actName << endl;
-        fout.close();
-    }
-    else
-    {
-        cout << "Can't open file.";
-    }
-}
 /**
  * @brief Forgot Password
  * *Message error:
@@ -389,6 +399,34 @@ int Account::forgotPassword(string nCode, string newPassword, string reNewPasswo
     writeFileAccount();
     return 1;
 }
+
+void Account::writeActLog(string username, string actName)
+{
+    // Get the current time using the system clock
+    chrono::system_clock::time_point now = chrono::system_clock::now();
+    time_t currentTime = chrono::system_clock::to_time_t(now);
+
+    // Convert the time to a string with the desired format
+    char buffer[80];
+    strftime(buffer, sizeof(buffer), "%H:%M:%S %d-%m-%Y", localtime(&currentTime));
+
+    // Print the formatted time
+    // cout << "Current time: " << buffer << endl;
+
+    fstream fout;
+    fout.open("./log/" + username + ".txt", ios::app);
+
+    if (fout.is_open())
+    {
+        fout << buffer << "|" << actName << endl;
+        fout.close();
+    }
+    else
+    {
+        cout << "Can't open file.";
+    }
+}
+
 void Account::activityLog(vector<pair<string, string>> &data, string username)
 {
     username = (username == "") ? info.username : username;
