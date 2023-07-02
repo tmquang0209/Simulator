@@ -2,12 +2,15 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+
 #include <ctime>
 #include <string.h>
 #include <math.h>
 #include <chrono>
 #include <iomanip>
 #include "Account.h"
+#include <utility>
+
 
 using namespace std;
 
@@ -103,6 +106,7 @@ void Account::readFileAccount()
         getline(iss, info.phoneNumber, '|');
         getline(iss, info.username, '|');
         getline(iss, info.password, '|');
+        getline(iss, info.typeAccount, '|');
         getline(iss, disable, '|');
         getline(iss, changePassword, '|');
 
@@ -122,6 +126,7 @@ void Account::writeFileAccount()
     {
         fOut << list[i].fullName << "|" << list[i].email << "|" << list[i].phoneNumber << "|"
              << list[i].username << "|" << list[i].password << "|"
+             << list[i].typeAccount << "|"
              << (list[i].isDisable ? "1" : "0") << "|" << list[i].changePassword << "|" << endl;
     }
     fOut.close();
@@ -277,6 +282,7 @@ int Account::changePassword(string oldPassword, string newPassword, string reNew
     return 1;
 }
 
+
 /**
  * @brief Forgot Password
  * *Message error:
@@ -307,7 +313,7 @@ int Account::forgotPassword(string type, string username)
 }
 
 /**
- * @brief Forgot Page
+ * @brief Forgot Password
  * *Message error:
  * 1: Success
  * -1: Your verify code isn't correct
@@ -446,4 +452,4 @@ void Account::activityLog(vector<pair<string, string>> &data, string username)
         data.emplace_back(time, event);
         index++;
     }
-}
+

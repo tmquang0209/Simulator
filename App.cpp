@@ -40,8 +40,9 @@ int main()
     // Lấy kích thước của cửa sổ console
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(consoleHandle, &csbi);
-    int width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-    int height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+
+    width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 
     // Thiết lập kích thước cho vùng cửa sổ cuộn
     SMALL_RECT scrollRect;
@@ -537,10 +538,8 @@ void accountInformation()
         break;
     }
 }
+
 void updateAccount(string username)
-{
-}
-void updateAccount()
 {
     system("cls");
     previousPage.push_back("UpdateAccount");
@@ -556,7 +555,6 @@ void updateAccount()
     cout << "\t\tChange information";
 
     // Info
-    string username = account.getInfo().username;
     string fullName = account.getInfo().fullName;
     string email = account.getInfo().email;
     string phoneNumber = account.getInfo().phoneNumber;
@@ -861,7 +859,7 @@ void forgotPassword()
             login();
         }
     }
-}
+
 
 void activityLog()
 {
@@ -919,6 +917,7 @@ void activityLog()
         break;
     }
 }
+
 void activityLog(string username)
 {
 }
