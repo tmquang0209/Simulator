@@ -8,6 +8,7 @@
 
 using namespace std;
 
+string checkName; 
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 Account account;
@@ -122,6 +123,159 @@ void home()
     int selectedOption = 1;      // Store the currently selected option
     bool optionSelected = false; // Flag to indicate if an option is selected
 
+    string filename = "./data/info.txt";
+    ifstream file(filename);
+    vector<vector<string>> data;
+
+    string line;
+    while (getline(file, line))
+    {
+        vector<string> row;
+        stringstream ss(line);
+        string value;
+
+        while (getline(ss, value, '|'))
+        {
+            row.push_back(value);
+        }
+
+        data.push_back(row);
+    }
+
+    file.close();
+    
+    bool found = false;
+    for (auto& row : data)
+    {
+        if (row.size() > 3 && row[3] == checkName)
+        {
+            if (row[5] == "administrator") 
+                found = true;
+            break;
+        }
+    }
+    if (found)
+    {
+        while (!optionSelected)
+        {
+            // Print the menu options
+            gotoxy(homeWinX + 2, homeWinY + 4);
+            if (selectedOption == 1)
+                cout << "-> 1. Account info.";
+            else
+                cout << "   1. Account info.";
+
+            gotoxy(homeWinX + 2, homeWinY + 5);
+            if (selectedOption == 2)
+                cout << "-> 2. Account list.";
+            else
+                cout << "   2. Account list.";
+
+            gotoxy(homeWinX + 2, homeWinY + 6);
+            if (selectedOption == 3)
+                cout << "-> 3. Activity logs.";
+            else
+                cout << "   3. Activity logs.";
+
+            gotoxy(homeWinX + 2, homeWinY + 7);
+            if (selectedOption == 4)
+                cout << "-> 4. Logout";
+            else
+                cout << "   4. Logout";
+
+            // Get the user input
+            char key = _getch();
+
+            // Process the user input
+            switch (key)
+            {
+            case 72: // Up arrow key
+                if (selectedOption > 1)
+                    selectedOption--;
+                break;
+            case 80: // Down arrow key
+                if (selectedOption < 4)
+                    selectedOption++;
+                break;
+            case 13: // Enter key
+                optionSelected = true;
+                break;
+            default:
+                break;
+            }
+        }
+        // Process the selected option
+            switch (selectedOption)
+            {
+            case 1:
+                accountInformation();
+                break;
+            case 2:
+                // Handle Account list option
+                break;
+            case 3:
+                // Handle Activity logs option
+                break;
+            case 4:
+                // Handle Logout option
+                break;
+            default:
+                break;
+            }
+    } else {
+        while (!optionSelected)
+        {
+            // Print the menu options
+            gotoxy(homeWinX + 2, homeWinY + 4);
+            if (selectedOption == 1)
+                cout << "-> 1. Account info.";
+            else
+                cout << "   1. Account info.";
+
+            gotoxy(homeWinX + 2, homeWinY + 5);
+            if (selectedOption == 2)
+                cout << "-> 2. File.";
+            else
+                cout << "   2. File.";
+
+            gotoxy(homeWinX + 2, homeWinY + 6);
+            if (selectedOption == 3)
+                cout << "-> 3. Logout";
+            else
+                cout << "   3. Logout";
+
+            // Get the user input
+            char key = _getch();
+
+            // Process the user input
+            switch (key)
+            {
+            case 72: // Up arrow key
+                if (selectedOption > 1)
+                    selectedOption--;
+                break;
+            case 80: // Down arrow key
+                if (selectedOption < 3)
+                    selectedOption++;
+                break;
+            case 13: // Enter key
+                optionSelected = true;
+                break;
+            default:
+                break;
+            }
+        }
+        switch (selectedOption)
+        {
+        case 1:
+            accountInformation();
+            break;
+        case 2:
+            // Handle Account list option
+            break;
+        case 3:
+            // Handle Logout option
+            
     while (!optionSelected)
     {
         // Print the menu options
@@ -169,26 +323,6 @@ void home()
         default:
             break;
         }
-    }
-
-    // Process the selected option
-    switch (selectedOption)
-    {
-    case 1:
-        accountInformation();
-        break;
-    case 2:
-        // Handle Account list option
-        break;
-    case 3:
-        // Handle Activity logs option
-        activityLog();
-        break;
-    case 4:
-        // Handle Logout option
-        break;
-    default:
-        break;
     }
 }
 
@@ -678,7 +812,6 @@ void updateAccount(string username)
 
 void forgotPassword()
 {
-}
 
 void activityLog()
 {
