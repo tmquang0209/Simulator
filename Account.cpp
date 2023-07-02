@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <utility>
 #include <ctime>
 #include <chrono>
 #include <iomanip>
@@ -173,6 +174,42 @@ int Account::checkInfo(string username, string password)
 }
 
 /**
+ * @brief update account info by username
+ *
+ * @param username
+ * @param fullName
+ * @param email
+ * @param phoneNumber
+ */
+void Account::updateInfo(string username, string fullName, string email, string phoneNumber)
+{
+    for (int i = 0; i < list.size(); i++)
+    {
+        if (info.username == username)
+        {
+            info.fullName = fullName;
+            info.email = email;
+            info.phoneNumber = phoneNumber;
+            if (list[i].username == username)
+            {
+                list[i] = info;
+            }
+            writeActLog(info.username, " update information.");
+            break;
+        }
+        else if (list[i].username == username)
+        {
+            list[i].fullName = fullName;
+            list[i].email = email;
+            list[i].phoneNumber = phoneNumber;
+            writeActLog(info.username, "update information of " + username);
+            break;
+        }
+    }
+    writeFileAccount();
+}
+
+/**
  * @brief Change password
  * *Message error:
  * 1: Success
@@ -239,18 +276,39 @@ void Account::writeActLog(string username, string actName)
     strftime(buffer, sizeof(buffer), "%H:%M:%S %d-%m-%Y", localtime(&currentTime));
 
     // Print the formatted time
-    cout << "Current time: " << buffer << endl;
+    // cout << "Current time: " << buffer << endl;
 
     fstream fout;
     fout.open("./log/" + username + ".txt", ios::app);
 
     if (fout.is_open())
     {
-        fout << buffer << ": " << actName << endl;
+        fout << buffer << "|" << actName << endl;
         fout.close();
     }
     else
     {
         cout << "Can't open file.";
+    }
+}
+
+void Account::activityLog(vector<pair<string, string>> &data, string username)
+{
+    username = (username == "") ? info.username : username;
+    fstream f;
+    f.open("./log/" + username + ".txt", ios::in);
+
+    string line;
+    int index = 0;
+    while (getline(f, line))
+    {
+        istringstream iss(line);
+
+        string time, event;
+        getline(iss, time, '|');
+        getline(iss, event, '|');
+
+        data.emplace_back(time, event);
+        index++;
     }
 }

@@ -8,11 +8,12 @@
 
 using namespace std;
 
+string checkName; 
+HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
 Account account;
 int width, height;
-string previousName;
-
-string checkName;            
+vector<string> previousPage;
 
 void gotoxy(int x, int y);
 void drawBox(int x, int y, int width, int height);
@@ -21,8 +22,10 @@ void home();
 void login();
 void changePassword();
 void accountInformation();
-void updateAccount();
+void updateAccount(string username);
 void forgotPassword();
+void activityLog();
+void activityLog(string username);
 
 int main()
 {
@@ -38,6 +41,22 @@ int main()
     GetConsoleScreenBufferInfo(consoleHandle, &csbi);
     width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
     height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+
+    // Thiết lập kích thước cho vùng cửa sổ cuộn
+    SMALL_RECT scrollRect;
+    scrollRect.Left = 0;
+    scrollRect.Top = 0;
+    scrollRect.Right = width - 1;
+    scrollRect.Bottom = height - 1;
+
+    // Thiết lập kích thước bộ đệm cho vùng cửa sổ cuộn
+    COORD scrollBufferSize;
+    scrollBufferSize.X = width;
+    scrollBufferSize.Y = height;
+
+    // Thiết lập vùng cửa sổ cuộn
+    SetConsoleWindowInfo(consoleHandle, TRUE, &scrollRect);
+    SetConsoleScreenBufferSize(consoleHandle, scrollBufferSize);
     login();
     return 0;
 }
@@ -65,8 +84,17 @@ void drawBox(int x, int y, int width, int height)
     }
 }
 
+/**
+ * @brief back to previous page
+ * Home
+ * AccountInfo
+ * ChangePassword
+ * UpdateAccount
+ * ActivityLog
+ */
 void back()
 {
+    string previousName = previousPage[previousPage.size() - 1];
     if (previousName == "Home")
     {
         home();
@@ -81,6 +109,7 @@ void back()
 void home()
 {
     system("cls");
+    previousPage.push_back("Home");
 
     // Tạo một cửa sổ con để hiển thị giao diện đăng nhập
     int homeWinHeight = 10;
@@ -246,6 +275,50 @@ void home()
             break;
         case 3:
             // Handle Logout option
+            
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(homeWinX + 2, homeWinY + 4);
+        if (selectedOption == 1)
+            cout << "-> 1. Account info.";
+        else
+            cout << "   1. Account info.";
+
+        gotoxy(homeWinX + 2, homeWinY + 5);
+        if (selectedOption == 2)
+            cout << "-> 2. Account list.";
+        else
+            cout << "   2. Account list.";
+
+        gotoxy(homeWinX + 2, homeWinY + 6);
+        if (selectedOption == 3)
+            cout << "-> 3. Activity logs.";
+        else
+            cout << "   3. Activity logs.";
+
+        gotoxy(homeWinX + 2, homeWinY + 7);
+        if (selectedOption == 4)
+            cout << "-> 4. Logout";
+        else
+            cout << "   4. Logout";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        switch (key)
+        {
+        case 72: // Up arrow key
+            if (selectedOption > 1)
+                selectedOption--;
+            break;
+        case 80: // Down arrow key
+            if (selectedOption < 4)
+                selectedOption++;
+            break;
+        case 13: // Enter key
+            optionSelected = true;
             break;
         default:
             break;
@@ -267,28 +340,6 @@ void login()
 
     gotoxy(loginWinX + 2, loginWinY + 2);
     cout << "\tLogin";
-
-    gotoxy(loginWinX + 2, loginWinY + 4);
-    cout << "Username: ";
-
-    gotoxy(loginWinX + 2, loginWinY + 5);
-    cout << "Password: ";
-
-    char username[20];
-    char password[20];
-
-    gotoxy(loginWinX + 18, loginWinY + 4);
-    cin >> username;
-
-    gotoxy(loginWinX + 18, loginWinY + 5);
-    // Vô hiệu hóa hiển thị ký tự trên màn hình
-    DWORD mode;
-    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
-    GetConsoleMode(handle, &mode);
-    SetConsoleMode(handle, mode & ~ENABLE_ECHO_INPUT);
-    cin >> password;
-    // Bật lại hiển thị ký tự trên màn hình
-    SetConsoleMode(handle, mode);
 
     int selectedOption = 1;      // Store the currently selected option
     bool optionSelected = false; // Flag to indicate if an option is selected
@@ -319,7 +370,7 @@ void login()
                 selectedOption--;
             break;
         case 80: // Down arrow key
-            if (selectedOption < 4)
+            if (selectedOption < 3)
                 selectedOption++;
             break;
         case 13: // Enter key
@@ -330,6 +381,30 @@ void login()
         }
     }
 
+    gotoxy(loginWinX + 2, loginWinY + 4);
+    cout << "Username: ";
+
+    gotoxy(loginWinX + 2, loginWinY + 5);
+    cout << "Password: ";
+
+    char username[20];
+    char password[20];
+
+    gotoxy(loginWinX + 18, loginWinY + 4);
+    cin >> username;
+
+    gotoxy(loginWinX + 18, loginWinY + 5);
+    // Vô hiệu hóa hiển thị ký tự trên màn hình
+    DWORD mode;
+    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
+    GetConsoleMode(handle, &mode);
+    SetConsoleMode(handle, mode & ~ENABLE_ECHO_INPUT);
+    cin >> password;
+    // Bật lại hiển thị ký tự trên màn hình
+    SetConsoleMode(handle, mode);
+
+    gotoxy(loginWinX + 2, loginWinY + 3);
+    SetConsoleTextAttribute(hConsole, 14);
 
     int msg = account.checkInfo(username, password);
     switch (selectedOption)
@@ -357,8 +432,9 @@ void login()
             {
                 cout << "Login success." << endl;
                 account.writeActLog(username, "login success.");
+
+                SetConsoleTextAttribute(hConsole, 15);
                 sleep(2);
-                checkName = username;
                 home();
             }
             else
@@ -376,6 +452,8 @@ void login()
 void changePassword()
 {
     system("cls");
+    previousPage.push_back("ChangePassword");
+
     // Tạo một cửa sổ con để hiển thị giao diện đăng nhập
     int changePasswordWinHeight = 13;
     int changePasswordWinWidth = 50;
@@ -479,8 +557,8 @@ void changePassword()
         }
         break;
     case 2:
+        previousPage.pop_back();
         back();
-        previousName = "ChangePassword";
         break;
     default:
         break;
@@ -490,6 +568,7 @@ void changePassword()
 void accountInformation()
 {
     system("cls");
+    previousPage.push_back("AccountInfo");
 
     int accountInfoWinHeight = 15;
     int accountInfoWinWidth = 50;
@@ -577,14 +656,13 @@ void accountInformation()
     switch (selectedOption)
     {
     case 1:
-        previousName = "AccountInfo";
-        updateAccount();
+        updateAccount(account.getInfo().username);
         break;
     case 2:
-        previousName = "AccountInfo";
         changePassword();
         break;
     case 3:
+        previousPage.pop_back();
         back();
         break;
     default:
@@ -592,11 +670,206 @@ void accountInformation()
     }
 }
 
-void updateAccount()
+void updateAccount(string username)
 {
-    cout << "Test merge";
+    system("cls");
+    previousPage.push_back("UpdateAccount");
+
+    int accountWinHeight = 15;
+    int accountWinWidth = 50;
+    int accountWinY = (height - accountWinHeight) / 2;
+    int accountWinX = (width - accountWinWidth) / 2;
+
+    drawBox(accountWinX, accountWinY, accountWinWidth, accountWinHeight);
+
+    gotoxy(accountWinX + 2, accountWinY + 2);
+    cout << "\t\tChange information";
+
+    // Info
+    string fullName = account.getInfo().fullName;
+    string email = account.getInfo().email;
+    string phoneNumber = account.getInfo().phoneNumber;
+
+    gotoxy(accountWinX + 5, accountWinY + 4);
+    cout << "Full name: ";
+    cout << fullName;
+
+    char ch;
+    while ((ch = _getch()) != '\r')
+    {
+        if (ch == '\b')
+        {
+            if (!fullName.empty())
+            {
+                cout << "\b \b";
+                fullName.pop_back();
+            }
+        }
+        else
+        {
+            cout << ch;
+            fullName += ch;
+        }
+    }
+
+    gotoxy(accountWinX + 5, accountWinY + 5);
+    cout << "Phone number: ";
+    cout << phoneNumber;
+    while ((ch = _getch()) != '\r')
+    {
+        if (ch == '\b')
+        {
+            if (!phoneNumber.empty())
+            {
+                cout << "\b \b";
+                phoneNumber.pop_back();
+            }
+        }
+        else
+        {
+            cout << ch;
+            phoneNumber += ch;
+        }
+    }
+
+    gotoxy(accountWinX + 5, accountWinY + 6);
+    cout << "Email: ";
+    cout << email;
+    while ((ch = _getch()) != '\r')
+    {
+        if (ch == '\b')
+        {
+            if (!email.empty())
+            {
+                cout << "\b \b";
+                email.pop_back();
+            }
+        }
+        else
+        {
+            cout << ch;
+            email += ch;
+        }
+    }
+
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(accountWinX + 10, accountWinY + 11);
+        if (selectedOption == 1)
+            cout << "[ Submit ]";
+        else
+            cout << "  Submit  ";
+
+        gotoxy(accountWinX + 10, accountWinY + 12);
+        if (selectedOption == 2)
+            cout << "[ Cancel ]";
+        else
+            cout << "  Cancel  ";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        switch (key)
+        {
+        case 72: // Up arrow key
+            if (selectedOption > 1)
+                selectedOption--;
+            break;
+        case 80: // Down arrow key
+            if (selectedOption < 4)
+                selectedOption++;
+            break;
+        case 13: // Enter key
+            optionSelected = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    // Process the selected option
+    switch (selectedOption)
+    {
+    case 1:
+        account.updateInfo(username, fullName, email, phoneNumber);
+        cout << "Update success.";
+        previousPage.pop_back();
+        back();
+        break;
+    case 2:
+        previousPage.pop_back();
+        back();
+        break;
+    default:
+        break;
+    }
 }
 
 void forgotPassword()
+{
+
+void activityLog()
+{
+    system("cls");
+    previousPage.push_back("ActivityLog");
+
+    vector<pair<string, string>> data;
+    account.activityLog(data);
+
+    int accountWinHeight = 10 + data.size();
+    int accountWinWidth = 60;
+    int accountWinY = (height - accountWinHeight) / 3;
+    int accountWinX = (width - accountWinWidth) / 2;
+
+    drawBox(accountWinX, accountWinY, accountWinWidth, accountWinHeight);
+
+    gotoxy(accountWinX + 5, accountWinY + 2);
+    cout << "\t\tActivity log";
+
+    int i;
+    for (i = 0; i < data.size(); i++)
+    {
+        gotoxy(accountWinX + 2, accountWinY + 4 + i);
+        cout << data[i].first << ":\t" << data[i].second;
+    }
+
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(accountWinX + 2, accountWinY + accountWinHeight - 5);
+        if (selectedOption == 1)
+            cout << "[ Back ]";
+        else
+            cout << "  Back  ";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        if (key == 13)
+            optionSelected = true;
+    }
+
+    // Process the selected option
+    switch (selectedOption)
+    {
+    case 1:
+        previousPage.pop_back();
+        back();
+        break;
+    default:
+        break;
+    }
+}
+
+void activityLog(string username)
 {
 }

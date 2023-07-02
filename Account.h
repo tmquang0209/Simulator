@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <utility>
 
 using namespace std;
 
@@ -36,6 +37,7 @@ public:
     void setList(vector<Info> list);
     vector<Info> getList();
     bool checkInfo(string username);
+    void updateInfo(string username, string fullName, string email, string phoneNumber);
     void readFileAccount();
     void writeFileAccount();
     void printList();
@@ -44,6 +46,7 @@ public:
     int changePassword(string oldPassword, string newPassword, string reNewPassword);
     void writeActLog(string username, string actName);
     int forgotPassword(string username, int type);
+    void activityLog(vector<pair<string, string>> &data, string username = "");
 };
 
 #endif
