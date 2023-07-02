@@ -5,6 +5,7 @@
 #include <ctime>
 #include <string.h>
 #include <math.h>
+#include <chrono>
 Account::Account()
 {
     isLogin = false;
@@ -266,7 +267,7 @@ void Account::writeActLog(string username, string actName)
  * @brief Forgot Page
  * *Message error:
  * 1: Success
- * -1: Your verifycode isn't correct
+ * -1: Your verify code isn't correct
  * -2: New password and renew password aren't the same
  * -3: The length of the new password less than 8
  * -4: New password without numbers or special characters
@@ -372,22 +373,15 @@ int Account::forgotPassword(string type, string username)
     Info check;
     for (int i = 0; i < list.size(); i++)
     {
-        if (list[i].email == type)
+        if ((list[i].email == type || list[i].phoneNumber == type) && list[i].username == username)
         {
             check = list[i];
             break;
         }
+        else if (check.email != type)
+            return -1;
+        else if (check.username != username)
+            return -2;
     }
-    for (int i = 0; i < list.size(); i++)
-    {
-        if (list[i].username == username)
-        {
-            check = list[i];
-            break;
-        }
-    }
-    if (check.email != type)
-        return -1;
-    else if (check.username != username)
-        return -2;
+    return 1;
 }
