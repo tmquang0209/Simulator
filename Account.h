@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-
+#include <utility>
 using namespace std;
 
 #ifndef ACCOUNT_H
@@ -37,6 +37,7 @@ public:
     vector<Info> getList();
     bool checkInfo(string username);
     bool checkVerify(const vector<string> &, const string &);
+    void updateInfo(string username, string fullName, string email, string phoneNumber);
     void readFileAccount();
     void writeFileAccount();
     void printList();
@@ -46,6 +47,7 @@ public:
     void writeActLog(string username, string actName);
     int forgotPassword(string type, string username);
     int forgotPassword(string nCode, string newPassword, string reNewPassword);
+    void activityLog(vector<pair<string, string>> &data, string username = "");
 };
 
 #endif

@@ -6,6 +6,11 @@
 #include <string.h>
 #include <math.h>
 #include <chrono>
+#include <iomanip>
+#include "Account.h"
+
+using namespace std;
+
 Account::Account()
 {
     isLogin = false;
@@ -262,6 +267,34 @@ void Account::writeActLog(string username, string actName)
         cout << "Can't open file.";
     }
 }
+/**
+ * @brief Forgot Password
+ * *Message error:
+ * 1: Success
+ * -1: Your email/phone number do not found!
+ * -2: Your username do not found!
+ * @param type
+ * @param username
+ * @return int
+ */
+
+int Account::forgotPassword(string type, string username)
+{
+    Info check;
+    for (int i = 0; i < list.size(); i++)
+    {
+        if ((list[i].email == type || list[i].phoneNumber == type) && list[i].username == username)
+        {
+            check = list[i];
+            break;
+        }
+        else if (check.email != type)
+            return -1;
+        else if (check.username != username)
+            return -2;
+    }
+    return 1;
+}
 
 /**
  * @brief Forgot Page
@@ -340,7 +373,6 @@ int Account::forgotPassword(string nCode, string newPassword, string reNewPasswo
 
     if (!numberDigit && !specialDigit)
         return -4;
-
     info.password = newPassword;
     info.changePassword = 0;
     // update to list
@@ -357,31 +389,23 @@ int Account::forgotPassword(string nCode, string newPassword, string reNewPasswo
     writeFileAccount();
     return 1;
 }
-
-/**
- * @brief Forgot Password
- * *Message error:
- * 1: Success
- * -1: Your email/phone number do not found!
- * -2: Your username do not found!
- * @param type
- * @param username
- * @return int
- */
-int Account::forgotPassword(string type, string username)
+void Account::activityLog(vector<pair<string, string>> &data, string username)
 {
-    Info check;
-    for (int i = 0; i < list.size(); i++)
+    username = (username == "") ? info.username : username;
+    fstream f;
+    f.open("./log/" + username + ".txt", ios::in);
+
+    string line;
+    int index = 0;
+    while (getline(f, line))
     {
-        if ((list[i].email == type || list[i].phoneNumber == type) && list[i].username == username)
-        {
-            check = list[i];
-            break;
-        }
-        else if (check.email != type)
-            return -1;
-        else if (check.username != username)
-            return -2;
+        istringstream iss(line);
+
+        string time, event;
+        getline(iss, time, '|');
+        getline(iss, event, '|');
+
+        data.emplace_back(time, event);
+        index++;
     }
-    return 1;
 }
