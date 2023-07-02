@@ -2,10 +2,15 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include <utility>
+
 #include <ctime>
+#include <string.h>
+#include <math.h>
 #include <chrono>
 #include <iomanip>
+#include "Account.h"
+#include <utility>
+
 
 using namespace std;
 
@@ -65,6 +70,18 @@ vector<Account::Info> Account::getList()
 bool Account::checkInfo(string username)
 {
     return true;
+}
+
+bool Account::checkVerify(const vector<string> &dataCode, const string &searchString)
+{
+    for (const string &data : dataCode)
+    {
+        if (data == searchString)
+        {
+            return true; // String found in the vector
+        }
+    }
+    return false; // String not found in the vector
 }
 
 void Account::readFileAccount()
@@ -265,6 +282,130 @@ int Account::changePassword(string oldPassword, string newPassword, string reNew
     return 1;
 }
 
+
+/**
+ * @brief Forgot Password
+ * *Message error:
+ * 1: Success
+ * -1: Your email/phone number do not found!
+ * -2: Your username do not found!
+ * @param type
+ * @param username
+ * @return int
+ */
+
+int Account::forgotPassword(string type, string username)
+{
+    Info check;
+    for (int i = 0; i < list.size(); i++)
+    {
+        if ((list[i].email == type || list[i].phoneNumber == type) && list[i].username == username)
+        {
+            check = list[i];
+            break;
+        }
+        else if (check.email != type)
+            return -1;
+        else if (check.username != username)
+            return -2;
+    }
+    return 1;
+}
+
+/**
+ * @brief Forgot Password
+ * *Message error:
+ * 1: Success
+ * -1: Your verify code isn't correct
+ * -2: New password and renew password aren't the same
+ * -3: The length of the new password less than 8
+ * -4: New password without numbers or special characters
+ * @param nCode
+ * @param newPassword
+ * @param reNewPassword
+ * @return int
+ */
+int Account::forgotPassword(string nCode, string newPassword, string reNewPassword)
+{
+    vector<string> dataCode;
+    string verifyCode;
+    // sending verify code
+    fstream writeFile;
+    char c;
+    int r;
+    srand(time(NULL));
+    writeFile.open("dataCode.txt", ios::out);
+    for (int i = 0; i < 8; i++)
+    {
+        r = rand() % 26;
+        c = 'A' + r;
+        writeFile << c;
+    }
+    writeFile << endl;
+    writeFile.close();
+    // read from file
+    fstream readFile;
+    readFile.open("dataCode.txt", ios::in);
+    if (!readFile)
+    {
+        cout << "Failed to open the file." << endl;
+        return 0;
+    }
+    while (getline(readFile, verifyCode))
+    {
+        dataCode.push_back(verifyCode);
+    }
+    cout << "input: " << endl;
+    getline(cin, nCode);
+    bool check = checkVerify(dataCode, nCode);
+    if (check)
+    {
+        cout << "Verify success!" << endl;
+    }
+    else
+        return -1;
+    readFile.close();
+    if (newPassword != reNewPassword)
+    {
+        return -2;
+    }
+    if (newPassword.length() < 8)
+    {
+        return -3;
+    }
+    bool numberDigit = false;
+    bool specialDigit = false;
+    for (char c : newPassword)
+    {
+        if (isdigit(c))
+            numberDigit = true;
+
+        if (ispunct(c))
+            specialDigit = true;
+
+        if (numberDigit && specialDigit)
+            break;
+    }
+
+    if (!numberDigit && !specialDigit)
+        return -4;
+    info.password = newPassword;
+    info.changePassword = 0;
+    // update to list
+    for (int i = 0; i < list.size(); i++)
+    {
+        if (list[i].username == info.username)
+        {
+            list[i].password = info.password;
+            list[i].changePassword = info.changePassword;
+            break;
+        }
+    }
+    // update to file
+    writeFileAccount();
+    return 1;
+}
+
 void Account::writeActLog(string username, string actName)
 {
     // Get the current time using the system clock
@@ -311,4 +452,4 @@ void Account::activityLog(vector<pair<string, string>> &data, string username)
         data.emplace_back(time, event);
         index++;
     }
-}
+

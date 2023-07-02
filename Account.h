@@ -37,6 +37,7 @@ public:
     void setList(vector<Info> list);
     vector<Info> getList();
     bool checkInfo(string username);
+    bool checkVerify(const vector<string> &, const string &);
     void updateInfo(string username, string fullName, string email, string phoneNumber);
     void readFileAccount();
     void writeFileAccount();
@@ -45,7 +46,8 @@ public:
     int checkInfo(string username, string password);
     int changePassword(string oldPassword, string newPassword, string reNewPassword);
     void writeActLog(string username, string actName);
-    int forgotPassword(string username, int type);
+    int forgotPassword(string type, string username);
+    int forgotPassword(string nCode, string newPassword, string reNewPassword);
     void activityLog(vector<pair<string, string>> &data, string username = "");
 };
 
