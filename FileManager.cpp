@@ -361,7 +361,7 @@ void executeFileManagementOption(const Info& info, int option) {
 }
 
 int main() {
-    string userFileName = "userinfo.txt";
+    string userFileName = "data.txt";
     string loggedInUsername;
 
     cout << "Welcome to the file management system.\n";
