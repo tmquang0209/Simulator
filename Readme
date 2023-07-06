@@ -1,2 +1,4 @@
-update thêm phần cho user và administrator ở app
-checkBox 
+#WINDOWS SERVER USER MANAGEMENT SIMULATION
+* SETUP
+- g++ App.cpp -o App
+- .\App
