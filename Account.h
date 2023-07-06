@@ -9,35 +9,24 @@ using namespace std;
 
 class Account
 {
-private:
-    struct Info
-    {
-        string fullName;
-        string email;
-        string phoneNumber;
-        string username;
-        string password;
-        string typeAccount;
-        bool isDisable;
-        int changePassword;
-    };
-
-    vector<Info> list;
+protected:
+    vector<UserInfo> list;
     bool isLogin;
-    Info info;
+    UserInfo info;
 
 public:
     Account();
-    void addToList(Info info);
+    void addToList(UserInfo info);
+    void addAccountToList(string fullname, string email, string phoneNumber, string username, string password, string type, bool isDisable, bool isChangePassword);
     void removeToList(string username);
     void setIsLogin(bool status);
     bool getIsLogin();
-    void setInfo(Info info);
-    Info getInfo();
-    void setList(vector<Info> list);
-    vector<Info> getList();
+    void setInfo(UserInfo info);
+    UserInfo getInfo();
+    void setList(vector<UserInfo> list);
+    vector<UserInfo> getList();
     bool checkInfo(string username);
-    bool checkVerify(const vector<string> &, const string &);
+    bool checkVerifyCode(string username, string code);
     void updateInfo(string username, string fullName, string email, string phoneNumber);
     void readFileAccount();
     void writeFileAccount();
@@ -47,7 +36,7 @@ public:
     int changePassword(string oldPassword, string newPassword, string reNewPassword);
     void writeActLog(string username, string actName);
     int forgotPassword(string type, string username);
-    int forgotPassword(string nCode, string newPassword, string reNewPassword);
+    int forgotPassword(string username, string nCode, string newPassword, string reNewPassword);
     void activityLog(vector<pair<string, string>> &data, string username = "");
 };
 

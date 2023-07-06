@@ -3,30 +3,34 @@
 #include <windows.h>
 #include <unistd.h>
 #include <conio.h> // Include the conio.h header for _getch() function
+#include "Draw.h"
+#include "Draw.cpp"
+#include "CharacterHandling.h"
+#include "CharacterHandling.cpp"
+#include "Struct.h"
 #include "Account.h"
 #include "Account.cpp"
 
 using namespace std;
 
-string checkName;
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 Account account;
 int width, height;
 vector<string> previousPage;
 
-void gotoxy(int x, int y);
-void drawBox(int x, int y, int width, int height);
 void back();
 void home();
 void login();
 void changePassword();
 void accountInformation();
 void updateAccount(string username);
-void forgotPage();
 void forgotPassword();
+void verifyForgotPassword(string username);
 void activityLog();
 void activityLog(string username);
+void createAccount();
+void listUser();
 
 int main()
 {
@@ -40,7 +44,6 @@ int main()
     // Lấy kích thước của cửa sổ console
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(consoleHandle, &csbi);
-
     width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
     height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 
@@ -59,31 +62,12 @@ int main()
     // Thiết lập vùng cửa sổ cuộn
     SetConsoleWindowInfo(consoleHandle, TRUE, &scrollRect);
     SetConsoleScreenBufferSize(consoleHandle, scrollBufferSize);
+
+    // load page default
     login();
+    // createAccount();
+    // listUser();
     return 0;
-}
-
-void gotoxy(int x, int y)
-{
-    COORD coord;
-    coord.X = x;
-    coord.Y = y;
-    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
-}
-
-void drawBox(int x, int y, int width, int height)
-{
-    for (int i = 0; i < height; i++)
-    {
-        for (int j = 0; j < width; j++)
-        {
-            if (i == 0 || i == height - 1 || j == 0 || j == width - 1)
-            {
-                gotoxy(x + j, y + i);
-                cout << "*";
-            }
-        }
-    }
 }
 
 /**
@@ -135,7 +119,7 @@ void home()
             cout << "   1. Account info.";
 
         gotoxy(homeWinX + 2, homeWinY + 5);
-        if (selectedOption == 2)
+        if (selectedOption == 2) // display with admin
             cout << "-> 2. Account list.";
         else
             cout << "   2. Account list.";
@@ -250,71 +234,74 @@ void login()
         }
     }
 
-    gotoxy(loginWinX + 2, loginWinY + 4);
-    cout << "Username: ";
-
-    gotoxy(loginWinX + 2, loginWinY + 5);
-    cout << "Password: ";
-
-    char username[20];
-    char password[20];
-
-    gotoxy(loginWinX + 18, loginWinY + 4);
-    cin >> username;
-
-    gotoxy(loginWinX + 18, loginWinY + 5);
-    // Vô hiệu hóa hiển thị ký tự trên màn hình
-    DWORD mode;
-    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
-    GetConsoleMode(handle, &mode);
-    SetConsoleMode(handle, mode & ~ENABLE_ECHO_INPUT);
-    cin >> password;
-    // Bật lại hiển thị ký tự trên màn hình
-    SetConsoleMode(handle, mode);
-
-    gotoxy(loginWinX + 2, loginWinY + 3);
-    SetConsoleTextAttribute(hConsole, 14);
-
-    int msg = account.checkInfo(username, password);
-    switch (selectedOption)
+    if (selectedOption == 1)
     {
-    case 1:
+        gotoxy(loginWinX + 2, loginWinY + 4);
+        cout << "Username: ";
+
+        gotoxy(loginWinX + 2, loginWinY + 5);
+        cout << "Password: ";
+
+        char username[20];
+        char password[20];
+
+        gotoxy(loginWinX + 18, loginWinY + 4);
+        cin >> username;
+
+        gotoxy(loginWinX + 18, loginWinY + 5);
+        // Vô hiệu hóa hiển thị ký tự trên màn hình
+        DWORD mode;
+        HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
+        GetConsoleMode(handle, &mode);
+        SetConsoleMode(handle, mode & ~ENABLE_ECHO_INPUT);
+        cin >> password;
+        // Bật lại hiển thị ký tự trên màn hình
+        SetConsoleMode(handle, mode);
+
+        gotoxy(loginWinX + 2, loginWinY + 3);
+        SetConsoleTextAttribute(hConsole, 14);
+
+        int msg = account.checkInfo(username, password);
         if (username == NULL || password == NULL)
         {
             cout << "Fill full the information." << endl;
         }
         else
         {
-            if (msg == -1)
-                cout << "Username Not Found!" << endl;
-            else if (msg == -2)
-                cout << "Incorrect Password!" << endl;
-            else if (msg == -3)
-            {
-                cout << "You need to change password." << endl;
-                sleep(3);
-                changePassword();
-            }
-            else if (msg == -4)
-                cout << "Your account has been ban." << endl;
-            else if (msg == 1)
+            if (msg == 1)
             {
                 cout << "Login success." << endl;
                 account.writeActLog(username, "login success.");
-
                 SetConsoleTextAttribute(hConsole, 15);
-                sleep(2);
+                sleep(3);
                 home();
             }
             else
-                cout << "Unknown Error." << endl;
+            {
+                if (msg == -1)
+                    cout << "Username not found!" << endl;
+                else if (msg == -2)
+                    cout << "Incorrect password!" << endl;
+                else if (msg == -3)
+                {
+                    cout << "You need to change password." << endl;
+                    sleep(3);
+                    changePassword();
+                }
+                else if (msg == -4)
+                    cout << "Your account has been ban." << endl;
+                sleep(3);
+
+                // reset text color
+                SetConsoleTextAttribute(hConsole, 15);
+                // reset form
+                login();
+            }
         }
-        break;
-    case 2:
-        forgotPage();
-        break;
-    default:
-        break;
+    }
+    else if (selectedOption == 2)
+    {
+        forgotPassword();
     }
 }
 
@@ -323,7 +310,7 @@ void changePassword()
     system("cls");
     previousPage.push_back("ChangePassword");
 
-    // Tạo một cửa sổ con để hiển thị giao diện đăng nhập
+    // create child window
     int changePasswordWinHeight = 13;
     int changePasswordWinWidth = 50;
     int changePasswordWinY = (height - changePasswordWinHeight) / 2;
@@ -341,7 +328,7 @@ void changePassword()
     cout << "New Password: ";
 
     gotoxy(changePasswordWinX + 2, changePasswordWinY + 6);
-    cout << "Renew Passwrod : ";
+    cout << "Renew Password : ";
 
     char oldPassword[20];
     char newPassword[20];
@@ -678,10 +665,17 @@ void updateAccount(string username)
         break;
     }
 }
-void forgotPage()
+
+/**
+ * @brief If user forgot password, user can visit this page to reset the password.
+ * It will ask user to enter the phone number or email and username to check in system
+ *
+ */
+void forgotPassword()
 {
-    int forgotPageWinHeight = 10;
-    int forgotPageWinWidth = 50;
+    system("cls");
+    int forgotPageWinHeight = 15;
+    int forgotPageWinWidth = 80;
     int forgotPageWinY = (height - forgotPageWinHeight) / 2;
     int forgotPageWinx = (width - forgotPageWinWidth) / 2;
 
@@ -719,7 +713,6 @@ void forgotPage()
             cout << "[ Back ]";
         else
             cout << "  Back  ";
-
         // Get the user input
         char key = _getch();
 
@@ -744,27 +737,34 @@ void forgotPage()
         gotoxy(forgotPageWinx + 2, forgotPageWinY + 3);
         if (msg != 1)
         {
-            system("cls");
+            SetConsoleTextAttribute(hConsole, 14);
             if (msg == -1)
-            {
-                cout << "Email or phone number is incorrect, please check again!" << endl;
-            }
+                cout << "Email/ phone number is incorrect, please check again!" << endl;
             else if (msg == -2)
-            {
                 cout << "Username not found, please check again!" << endl;
-            }
+            SetConsoleTextAttribute(hConsole, 15);
+            sleep(5);
+            forgotPassword();
         }
         else
         {
-            system("cls");
-            cout << "Verify and Change your password" << endl;
-            sleep(2);
-            forgotPassword();
+            SetConsoleTextAttribute(hConsole, 14);
+            cout << "Code has been sent to your email/ phone number. Please check this out." << endl;
+            sleep(5);
+            SetConsoleTextAttribute(hConsole, 15);
+            verifyForgotPassword(username);
         }
     }
 }
-void forgotPassword()
+
+/**
+ * @brief After entering the username and phone number, it will redirect to  verification page. It will check the verification code and the user will enter a new password
+ *
+ * @param username
+ */
+void verifyForgotPassword(string username)
 {
+    system("cls");
     int forgotPageWinHeight = 10;
     int forgotPageWinWidth = 50;
     int forgotPageWinY = (height - forgotPageWinHeight) / 2;
@@ -836,11 +836,10 @@ void forgotPassword()
             break;
         }
 
-        int msg = account.forgotPassword(nCode, newPassword, reNewPassword);
+        int msg = account.forgotPassword(username, nCode, newPassword, reNewPassword);
         gotoxy(forgotPageWinx + 2, forgotPageWinY + 3);
         if (msg != 1)
         {
-            system("cls");
             if (msg == -1)
                 cout << "Your verify code is incorrect, please check again!" << endl;
             else if (msg == -2)
@@ -849,18 +848,24 @@ void forgotPassword()
                 cout << "Password has to be at least 8 letter." << endl;
             else if (msg == -4)
                 cout << "Password have at least 1 number and 1 special letter." << endl;
-            forgotPage();
+
+            sleep(4);
+            verifyForgotPassword(username);
         }
         else
         {
-            system("cls");
             cout << "Change password success!" << endl;
+            account.writeActLog(username, "reset password successfully.");
             sleep(2);
             login();
         }
     }
 }
 
+/**
+ * @brief View other user's activity. Only admin can view.
+ *
+ */
 void activityLog()
 {
     system("cls");
@@ -918,6 +923,362 @@ void activityLog()
     }
 }
 
+/**
+ * @brief View other user's activity. Only admin can view.
+ *
+ * @param username
+ */
 void activityLog(string username)
 {
+    system("cls");
+
+    vector<pair<string, string>> data;
+    account.activityLog(data, username);
+
+    int accountWinHeight = 10 + data.size();
+    int accountWinWidth = 60;
+    int accountWinY = (height - accountWinHeight) / 3;
+    int accountWinX = (width - accountWinWidth) / 2;
+
+    drawBox(accountWinX, accountWinY, accountWinWidth, accountWinHeight);
+
+    gotoxy(accountWinX + 5, accountWinY + 2);
+    cout << "\t\tActivity log";
+
+    int i;
+    for (i = 0; i < data.size(); i++)
+    {
+        gotoxy(accountWinX + 2, accountWinY + 4 + i);
+        cout << data[i].first << ":\t" << data[i].second;
+    }
+
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(accountWinX + 2, accountWinY + accountWinHeight - 5);
+        if (selectedOption == 1)
+            cout << "[ Back ]";
+        else
+            cout << "  Back  ";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        if (key == 13)
+            optionSelected = true;
+    }
+
+    // Process the selected option
+    switch (selectedOption)
+    {
+    case 1:
+        previousPage.pop_back();
+        back();
+        break;
+    default:
+        break;
+    }
+}
+
+/**
+ * @brief Create a Account object
+ * Only admins can access to page.
+ * In this page, admin can create user and set some option for this.
+ */
+void createAccount()
+{
+    system("cls");
+    previousPage.push_back("CreateAccount");
+
+    //! if this isn't admin => go back to previous page
+    if (account.getInfo().typeAccount != "administrator")
+    {
+        previousPage.pop_back();
+        back();
+    }
+
+    int createAccountWinHeight = 20;
+    int createAccountWinWidth = 60;
+    int createAccountWinY = (height - createAccountWinHeight) / 2;
+    int createAccountWinX = (width - createAccountWinWidth) / 2;
+
+    drawBox(createAccountWinX, createAccountWinY, createAccountWinWidth, createAccountWinHeight);
+
+    // set center text
+    int fillInfoX = createAccountWinX + (createAccountWinWidth - 19) / 2; // 19 is the length of "Fill your information"
+
+    gotoxy(fillInfoX, createAccountWinY + 2);
+    cout << "Fill your information";
+
+    gotoxy(createAccountWinX + 2, createAccountWinY + 4);
+    cout << "Full name: ";
+
+    gotoxy(createAccountWinX + 2, createAccountWinY + 5);
+    cout << "Email: ";
+
+    gotoxy(createAccountWinX + 2, createAccountWinY + 6);
+    cout << "Phone number: ";
+
+    gotoxy(createAccountWinX + 2, createAccountWinY + 7);
+    cout << "Username: ";
+
+    gotoxy(createAccountWinX + 2, createAccountWinY + 8);
+    cout << "Password: ";
+
+    gotoxy(createAccountWinX + 2, createAccountWinY + 9);
+    cout << "Confirm password: ";
+
+    gotoxy(createAccountWinX + 2, createAccountWinY + 10);
+    cout << "Account type: ";
+
+    string fullname, email, phoneNumber, username, password, confirmPassword, type;
+    bool isAdmin = false, isUser = true;
+    bool isDisable = false, isChangePassword = false;
+
+    gotoxy(createAccountWinX + 20, createAccountWinY + 4);
+    getline(cin, fullname);
+
+    gotoxy(createAccountWinX + 20, createAccountWinY + 5);
+    getline(cin, email);
+
+    gotoxy(createAccountWinX + 20, createAccountWinY + 6);
+    getline(cin, phoneNumber);
+
+    gotoxy(createAccountWinX + 20, createAccountWinY + 7);
+    getline(cin, username);
+
+    while (account.checkInfo(username))
+    {
+        gotoxy(createAccountWinX + 2, createAccountWinY + 12);
+        cout << "The account already exists!"; // Account is exists
+
+        gotoxy(createAccountWinX + 20, createAccountWinY + 7);
+        cout << setw(createAccountWinWidth - 22) << " "; // Xóa nội dung dòng tài khoản
+        gotoxy(createAccountWinX + 20, createAccountWinY + 7);
+        getline(cin, username);
+
+        gotoxy(createAccountWinX + 2, createAccountWinY + 12);
+        cout << setw(createAccountWinWidth) << " "; // Xóa nội dung dòng thông báo
+    }
+
+    gotoxy(createAccountWinX + 20, createAccountWinY + 8);
+    getline(cin, password);
+
+    string passwordRequirements = "";
+
+    // check password
+    while (password.length() < 8 || password.length() > 12 || !hasUppercase(password) || !hasLowercase(password) || !hasDigit(password))
+    {
+        passwordRequirements = "";
+        if (password.length() < 8 || password.length() > 12)
+        {
+            passwordRequirements += "8-12 characters, ";
+        }
+        if (!hasUppercase(password))
+        {
+            passwordRequirements += "at least one uppercase letter, ";
+        }
+        if (!hasLowercase(password))
+        {
+            passwordRequirements += "at least one lowercase letter, ";
+        }
+        if (!hasDigit(password))
+        {
+            passwordRequirements += "at least one digit, ";
+        }
+
+        gotoxy(createAccountWinX + 2, createAccountWinY + 12);
+        cout << "Password required " << passwordRequirements.substr(0, passwordRequirements.length() - 2);
+
+        gotoxy(createAccountWinX + 20, createAccountWinY + 8);
+        cout << setw(createAccountWinWidth - 22) << " "; // Xóa nội dung dòng mật khẩu
+        gotoxy(createAccountWinX + 20, createAccountWinY + 8);
+        getline(cin, password);
+
+        gotoxy(createAccountWinX + 2, createAccountWinY + 12);
+        cout << setw(createAccountWinWidth + 45) << " "; // Xóa nội dung dòng thông báo
+    }
+
+    gotoxy(createAccountWinX + 20, createAccountWinY + 9);
+    getline(cin, confirmPassword);
+
+    // check re-password
+    while (password != confirmPassword)
+    {
+        gotoxy(createAccountWinX + 2, createAccountWinY + 12);
+        cout << "Password mismatch. Try again!";
+
+        gotoxy(createAccountWinX + 20, createAccountWinY + 9);
+        cout << setw(createAccountWinWidth - 22) << " "; // Xóa nội dung dòng nhập lại mật khẩu
+        gotoxy(createAccountWinX + 20, createAccountWinY + 9);
+        getline(cin, confirmPassword);
+    }
+
+    // account type
+    gotoxy(createAccountWinX + 20, createAccountWinY + 10);
+    while (true)
+    {
+        gotoxy(createAccountWinX + 2, createAccountWinY + 11);
+        // Draw checkboxes
+        cout << "Press button 1, 2 or Q to:";
+        gotoxy(createAccountWinX + 2, createAccountWinY + 12);
+        drawCheckbox(isAdmin, "Administrator");
+        gotoxy(createAccountWinX + 2, createAccountWinY + 13);
+        drawCheckbox(isUser, "User");
+
+        // Wait for user input
+        char input = getch();
+        cout << input;
+        // Handle user input
+        switch (input)
+        {
+        case '1':
+            isAdmin = !isAdmin;
+            isUser = false;
+            type = "administrator";
+            break;
+        case '2':
+            isUser = !isUser;
+            isAdmin = false;
+            type = "user";
+            break;
+        default:
+            break;
+        }
+
+        if (input == 'q' || input == 'Q')
+            break;
+    }
+    // if not choose type account => default is user
+    if (!isUser && !isAdmin)
+    {
+        type = "user";
+        isUser = true;
+    }
+
+    // account option
+    while (true)
+    {
+        gotoxy(createAccountWinX + 2, createAccountWinY + 14);
+        // Draw checkboxes
+        cout << "Press button 1, 2 or Q to:";
+        gotoxy(createAccountWinX + 2, createAccountWinY + 15);
+        drawCheckbox(isChangePassword, "User must change password at next logon");
+        gotoxy(createAccountWinX + 2, createAccountWinY + 16);
+        drawCheckbox(isDisable, "Account is disabled");
+
+        // Wait for user input
+        char input = getch();
+
+        // Handle user input
+        switch (input)
+        {
+        case '1':
+            isChangePassword = !isChangePassword;
+            break;
+        case '2':
+            isDisable = !isDisable;
+            break;
+        default:
+            break;
+        }
+        if (input == 'q' || input == 'Q')
+            break;
+    }
+
+    if (fullname.empty() || email.empty() || phoneNumber.empty() || username.empty() || password.empty() || confirmPassword.empty())
+    {
+        cout << "Fill full the information." << endl;
+    }
+    else
+    {
+        gotoxy(createAccountWinX + 2, createAccountWinY + 17);
+        cout << "Create account is successful." << endl;
+        account.writeActLog(account.getInfo().username, "creates an account with username " + username);
+        account.addAccountToList(fullname, email, phoneNumber, username, password, type, isDisable, isChangePassword);
+        sleep(3);
+        home();
+    }
+}
+
+void listUser()
+{
+    system("cls");
+    previousPage.push_back("ListUser");
+    vector<UserInfo> dataUser = account.getList();
+
+    int userListHeight = 5 + dataUser.size();
+    int userListWidth = 120;
+    int userListY = (height - userListHeight) / 3;
+    int userListX = (width - userListWidth) / 2;
+
+    drawBox(userListX, userListY, userListWidth, userListHeight);
+    gotoxy(userListX + 3, userListY + 2);
+    cout << "STT";
+    gotoxy(userListX + 10, userListY + 2);
+    cout << "Name";
+    gotoxy(userListX + 30, userListY + 2);
+    cout << "Email";
+    gotoxy(userListX + 55, userListY + 2);
+    cout << "Phone number";
+    gotoxy(userListX + 70, userListY + 2);
+    cout << "Username";
+    gotoxy(userListX + 85, userListY + 2);
+    cout << "Role";
+    gotoxy(userListX + 100, userListY + 2);
+    cout << "Status";
+    int row = 3;
+    for (int i = 0; i < dataUser.size(); i++)
+    {
+        gotoxy(userListX + 3, userListY + row);
+        cout << i + 1;
+        gotoxy(userListX + 10, userListY + row);
+        cout << dataUser[i].fullName;
+        gotoxy(userListX + 30, userListY + row);
+        cout << dataUser[i].email;
+        gotoxy(userListX + 55, userListY + row);
+        cout << dataUser[i].phoneNumber;
+        gotoxy(userListX + 70, userListY + row);
+        cout << dataUser[i].username;
+        gotoxy(userListX + 85, userListY + row);
+        cout << dataUser[i].typeAccount;
+        gotoxy(userListX + 100, userListY + row);
+        cout << dataUser[i].isDisable;
+        row++;
+    }
+
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(userListX + 30, userListY + userListHeight - 2);
+        if (selectedOption == 1)
+            cout << "[ Back ]";
+        else
+            cout << "  Back  ";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        if (key == 13)
+            optionSelected = true;
+    }
+
+    // Process the selected option
+    switch (selectedOption)
+    {
+    case 1:
+        previousPage.pop_back();
+        back();
+        break;
+    default:
+        break;
+    }
 }

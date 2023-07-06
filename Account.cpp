@@ -2,15 +2,13 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-
-#include <ctime>
 #include <string.h>
-#include <math.h>
 #include <chrono>
 #include <iomanip>
-#include "Account.h"
 #include <utility>
-
+#include "Account.h"
+#include "CharacterHandling.h"
+#include "Struct.h"
 
 using namespace std;
 
@@ -20,7 +18,7 @@ Account::Account()
     readFileAccount();
 }
 
-void Account::addToList(Info info)
+void Account::addToList(UserInfo info)
 {
     list.push_back(info);
 }
@@ -47,41 +45,82 @@ bool Account::getIsLogin()
     return isLogin;
 }
 
-void Account::setInfo(Info info)
+void Account::setInfo(UserInfo info)
 {
     this->info = info;
 }
 
-Account::Info Account::getInfo()
+UserInfo Account::getInfo()
 {
     return info;
 }
 
-void Account::setList(vector<Info> list)
+void Account::setList(vector<UserInfo> list)
 {
     this->list = list;
 }
 
-vector<Account::Info> Account::getList()
+vector<UserInfo> Account::getList()
 {
     return this->list;
 }
 
-bool Account::checkInfo(string username)
+void Account::addAccountToList(string fullname, string email, string phoneNumber, string username, string password, string type, bool isDisable, bool isChangePassword)
 {
-    return true;
+    UserInfo newAccount = {
+        fullname,
+        email,
+        phoneNumber,
+        username,
+        password,
+        type,
+        isDisable,
+        isChangePassword};
+
+    list.push_back(newAccount);
+    writeFileAccount();
 }
 
-bool Account::checkVerify(const vector<string> &dataCode, const string &searchString)
+bool Account::checkInfo(string username)
 {
-    for (const string &data : dataCode)
+    for (int i = 0; i < list.size(); i++)
     {
-        if (data == searchString)
-        {
-            return true; // String found in the vector
-        }
+        if (list[i].username == username)
+            return true;
     }
-    return false; // String not found in the vector
+    return false;
+}
+
+bool Account::checkVerifyCode(string username, string code)
+{
+    ifstream fin("VerifyCode.txt");
+    ofstream temp("temp.txt"); // Temporary file to store modified contents
+    string line, getUsername, getCode;
+    bool found = false;
+
+    while (getline(fin, line))
+    {
+        istringstream iss(line);
+
+        getline(iss, getUsername, '|');
+        getline(iss, getCode, '|');
+
+        if (username == getUsername && code == getCode)
+        {
+            found = true;
+            continue; // Skip writing this line to the temporary file
+        }
+
+        temp << line << endl; // Write the line to the temporary file
+    }
+
+    fin.close();
+    temp.close();
+
+    remove("VerifyCode.txt");             // Remove the original file
+    rename("temp.txt", "VerifyCode.txt"); // Rename the temporary file to the original filename
+
+    return found;
 }
 
 void Account::readFileAccount()
@@ -97,7 +136,7 @@ void Account::readFileAccount()
     while (getline(fin, line))
     {
         istringstream iss(line);
-        Info info;
+        UserInfo info;
         string disable;
         string changePassword;
 
@@ -159,7 +198,7 @@ void Account::printInfo()
  */
 int Account::checkInfo(string username, string password)
 {
-    Info check;
+    UserInfo check;
     for (int i = 0; i < list.size(); i++)
     {
         if (list[i].username == username)
@@ -282,7 +321,6 @@ int Account::changePassword(string oldPassword, string newPassword, string reNew
     return 1;
 }
 
-
 /**
  * @brief Forgot Password
  * *Message error:
@@ -296,19 +334,23 @@ int Account::changePassword(string oldPassword, string newPassword, string reNew
 
 int Account::forgotPassword(string type, string username)
 {
-    Info check;
+    UserInfo check;
     for (int i = 0; i < list.size(); i++)
     {
-        if ((list[i].email == type || list[i].phoneNumber == type) && list[i].username == username)
+        if ((list[i].email == type && list[i].username == username) || (list[i].username == username && list[i].phoneNumber == type))
         {
             check = list[i];
             break;
         }
-        else if (check.email != type)
-            return -1;
-        else if (check.username != username)
-            return -2;
     }
+
+    if (check.username.empty())
+        return -2;
+    if (check.email != type && check.phoneNumber != type)
+        return -1;
+
+    // create verify code
+    randomDigit(username);
     return 1;
 }
 
@@ -325,54 +367,21 @@ int Account::forgotPassword(string type, string username)
  * @param reNewPassword
  * @return int
  */
-int Account::forgotPassword(string nCode, string newPassword, string reNewPassword)
+int Account::forgotPassword(string username, string nCode, string newPassword, string reNewPassword)
 {
-    vector<string> dataCode;
-    string verifyCode;
-    // sending verify code
-    fstream writeFile;
-    char c;
-    int r;
-    srand(time(NULL));
-    writeFile.open("dataCode.txt", ios::out);
-    for (int i = 0; i < 8; i++)
-    {
-        r = rand() % 26;
-        c = 'A' + r;
-        writeFile << c;
-    }
-    writeFile << endl;
-    writeFile.close();
-    // read from file
-    fstream readFile;
-    readFile.open("dataCode.txt", ios::in);
-    if (!readFile)
-    {
-        cout << "Failed to open the file." << endl;
-        return 0;
-    }
-    while (getline(readFile, verifyCode))
-    {
-        dataCode.push_back(verifyCode);
-    }
-    cout << "input: " << endl;
-    getline(cin, nCode);
-    bool check = checkVerify(dataCode, nCode);
-    if (check)
-    {
-        cout << "Verify success!" << endl;
-    }
-    else
+    // check code
+    bool check = checkVerifyCode(username, nCode);
+    if (!check)
         return -1;
-    readFile.close();
+
+    // check password and repassword
     if (newPassword != reNewPassword)
-    {
         return -2;
-    }
+
+    // check format of new password (length, uppercase letter, special letter,...)
     if (newPassword.length() < 8)
-    {
         return -3;
-    }
+
     bool numberDigit = false;
     bool specialDigit = false;
     for (char c : newPassword)
@@ -389,15 +398,13 @@ int Account::forgotPassword(string nCode, string newPassword, string reNewPasswo
 
     if (!numberDigit && !specialDigit)
         return -4;
-    info.password = newPassword;
-    info.changePassword = 0;
+
     // update to list
     for (int i = 0; i < list.size(); i++)
     {
-        if (list[i].username == info.username)
+        if (list[i].username == username)
         {
-            list[i].password = info.password;
-            list[i].changePassword = info.changePassword;
+            list[i].password = newPassword;
             break;
         }
     }
@@ -452,4 +459,4 @@ void Account::activityLog(vector<pair<string, string>> &data, string username)
         data.emplace_back(time, event);
         index++;
     }
-
+}
