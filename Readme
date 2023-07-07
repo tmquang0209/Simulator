@@ -1,4 +1,0 @@
-#WINDOWS SERVER USER MANAGEMENT SIMULATION
-* SETUP
-- g++ App.cpp -o App
-- .\App
