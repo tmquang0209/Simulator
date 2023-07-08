@@ -166,6 +166,7 @@ void home()
         break;
     case 2:
         // Handle Account list option
+        listUser();
         break;
     case 3:
         // Handle Activity logs option
@@ -1035,9 +1036,11 @@ void createAccount()
     gotoxy(createAccountWinX + 2, createAccountWinY + 10);
     cout << "Account type: ";
 
-    string fullname, email, phoneNumber, username, password, confirmPassword, type;
+    string fullname, email, phoneNumber, username, password, confirmPassword, type="user";
     bool isAdmin = false, isUser = true;
     bool isDisable = false, isChangePassword = false;
+
+    cin.ignore();
 
     gotoxy(createAccountWinX + 20, createAccountWinY + 4);
     getline(cin, fullname);
@@ -1053,7 +1056,7 @@ void createAccount()
 
     while (account.checkInfo(username))
     {
-        gotoxy(createAccountWinX + 2, createAccountWinY + 12);
+        gotoxy(createAccountWinX + 2, createAccountWinY + 20);
         cout << "The account already exists!"; // Account is exists
 
         gotoxy(createAccountWinX + 20, createAccountWinY + 7);
@@ -1061,7 +1064,7 @@ void createAccount()
         gotoxy(createAccountWinX + 20, createAccountWinY + 7);
         getline(cin, username);
 
-        gotoxy(createAccountWinX + 2, createAccountWinY + 12);
+        gotoxy(createAccountWinX + 2, createAccountWinY + 20);
         cout << setw(createAccountWinWidth) << " "; // Xóa nội dung dòng thông báo
     }
 
@@ -1091,7 +1094,7 @@ void createAccount()
             passwordRequirements += "at least one digit, ";
         }
 
-        gotoxy(createAccountWinX + 2, createAccountWinY + 12);
+        gotoxy(createAccountWinX + 2, createAccountWinY + 20);
         cout << "Password required " << passwordRequirements.substr(0, passwordRequirements.length() - 2);
 
         gotoxy(createAccountWinX + 20, createAccountWinY + 8);
@@ -1099,7 +1102,7 @@ void createAccount()
         gotoxy(createAccountWinX + 20, createAccountWinY + 8);
         getline(cin, password);
 
-        gotoxy(createAccountWinX + 2, createAccountWinY + 12);
+        gotoxy(createAccountWinX + 2, createAccountWinY + 20);
         cout << setw(createAccountWinWidth + 45) << " "; // Xóa nội dung dòng thông báo
     }
 
@@ -1109,7 +1112,7 @@ void createAccount()
     // check re-password
     while (password != confirmPassword)
     {
-        gotoxy(createAccountWinX + 2, createAccountWinY + 12);
+        gotoxy(createAccountWinX + 2, createAccountWinY + 20);
         cout << "Password mismatch. Try again!";
 
         gotoxy(createAccountWinX + 20, createAccountWinY + 9);
@@ -1154,11 +1157,11 @@ void createAccount()
             break;
     }
     // if not choose type account => default is user
-    if (!isUser && !isAdmin)
-    {
-        type = "user";
-        isUser = true;
-    }
+    // if (!isUser && !isAdmin)
+    // {
+    //     type = "user";
+    //     isUser = true;
+    // }
 
     // account option
     while (true)
