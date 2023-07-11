@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <utility>
+#include "Struct.h"
 
 using namespace std;
 
@@ -23,16 +24,19 @@ public:
     bool getIsLogin();
     void setInfo(UserInfo info);
     UserInfo getInfo();
+    UserInfo getInfo(string username);
     void setList(vector<UserInfo> list);
     vector<UserInfo> getList();
     bool checkInfo(string username);
+    int checkInfo(string username, string password);
     bool checkVerifyCode(string username, string code);
     void updateInfo(string username, string fullName, string email, string phoneNumber);
+    void activeAccount(string username);
+    void deleteAccount(string username);
     void readFileAccount();
     void writeFileAccount();
     void printList();
     void printInfo();
-    int checkInfo(string username, string password);
     int changePassword(string oldPassword, string newPassword, string reNewPassword);
     void writeActLog(string username, string actName);
     int forgotPassword(string type, string username);
