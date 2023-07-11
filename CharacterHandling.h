@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 using namespace std;
 #ifndef CHARACTERHANDLING_H
 #define CHARACTERHANDLING_H

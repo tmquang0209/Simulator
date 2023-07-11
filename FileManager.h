@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <string>
 #include <vector>
 #include "Account.h"
@@ -23,6 +23,7 @@ public:
     int renameFile(string dirName, string targetFile, string newFileName, FileInfo fileInfo, Permission fileAccess);
     int deleteFile(string dirname, string targetFile, FileInfo fileInfo, Permission fileAccess);
     int permissionsFile(string targetUser, string targetFile, vector<string> permission, FileInfo &fileInfo, Permission &fileAccess); // assign permissions to other users
+    void setUserInfo(string &username);
 };
 
 #endif
