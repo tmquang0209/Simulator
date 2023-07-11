@@ -1,7 +1,7 @@
 #include <iostream>
+#include <string>
 #include <cstring>
 #include <windows.h>
-#include <sys/stat.h>  // create folder
 #include <unistd.h>
 #include <conio.h> // Include the conio.h header for _getch() function
 #include "Draw.h"
@@ -13,7 +13,6 @@
 #include "Account.cpp"
 #include "FileManager.h"
 #include "FileManager.cpp"
-
 
 using namespace std;
 
@@ -37,18 +36,19 @@ void verifyForgotPassword(string username);
 void activityLog();
 void activityLog(string username);
 void createAccount();
+void deleteAccount(string username);
+void actionMenu(string username);
 void listUser();
 void fileManager();
 void createFile();
-void PrintFiles();
+void printFiles();
 void writeInfoFile(string dirName, string fileName);
 void getInfoFile(string dirName, string fileName);
-void moveFile(string dirName, string fileName,FileInfo fileInfo, Permission fileAccess);
-void renameFile(string dirName, string fileName,FileInfo fileInfo, Permission fileAccess);
-void copyFile(string dirName, string fileName,FileInfo fileInfo, Permission fileAccess);
-void deleteFile(string dirName, string fileName,FileInfo fileInfo, Permission fileAccess);
-void permissionsFile(string dirName, string fileName,FileInfo fileInfo, Permission fileAccess);
-
+void moveFile(string dirName, string fileName);
+void renameFile(string dirName, string fileName);
+void copyFile(string dirName, string fileName);
+void deleteFile(string dirName, string fileName);
+void permissionsFile(string dirName, string fileName);
 
 int main()
 {
@@ -99,14 +99,25 @@ int main()
 void back()
 {
     string previousName = previousPage[previousPage.size() - 1];
-    if (previousName == "Home")
-    {
-        home();
-    }
 
-    if (previousName == "AccountInfo")
-    {
+    if (previousName == "Home")
+        home();
+    else if (previousName == "AccountInfo")
         accountInformation();
+    else if (previousName == "CreateAccount")
+        createAccount();
+    else if (previousName == "ListUser")
+        listUser();
+    else if (previousName.find("ActionMenu") != string::npos)
+    {
+        string substring = "ActionMenu";
+        // Find the substring within the main string
+        size_t found = previousName.find(substring);
+
+        // Check if the substring is found
+        string username = previousName.substr(found + substring.length() + 1);
+        cout << username;
+        actionMenu(username);
     }
 }
 
@@ -151,17 +162,17 @@ void home()
         gotoxy(homeWinX + 2, homeWinY + 7);
         if (selectedOption == 4)
             cout << "-> 4. File manager.";
-        else    
-            cout << "   4. File manager.";    
-            
+        else
+            cout << "   4. File manager.";
+
         gotoxy(homeWinX + 2, homeWinY + 8);
-        if (selectedOption == 5)        
+        if (selectedOption == 5)
             cout << "-> 5. Create user.";
         else
             cout << "   5. Create user.";
-        
+
         gotoxy(homeWinX + 2, homeWinY + 9);
-        if (selectedOption == 6)        
+        if (selectedOption == 6)
             cout << "-> 6. Logout";
         else
             cout << "   6. Logout";
@@ -210,7 +221,7 @@ void home()
         createAccount();
         break;
     case 6:
-        break;    
+        break;
     default:
         break;
     }
@@ -579,9 +590,10 @@ void updateAccount(string username)
     cout << "\t\tChange information";
 
     // Info
-    string fullName = account.getInfo().fullName;
-    string email = account.getInfo().email;
-    string phoneNumber = account.getInfo().phoneNumber;
+    UserInfo info = account.getInfo(username);
+    string fullName = info.fullName;
+    string email = info.email;
+    string phoneNumber = info.phoneNumber;
 
     gotoxy(accountWinX + 5, accountWinY + 4);
     cout << "Full name: ";
@@ -863,7 +875,7 @@ void verifyForgotPassword(string username)
                 selectedOption--;
             break;
         case 80: // Down arrow key
-            if (selectedOption < 4)
+            if (selectedOption < 3)
                 selectedOption++;
             break;
         case 13: // Enter key
@@ -1030,48 +1042,37 @@ void createAccount()
 {
     system("cls");
     previousPage.push_back("CreateAccount");
-
     //! if this isn't admin => go back to previous page
     if (account.getInfo().typeAccount != "administrator")
     {
         previousPage.pop_back();
         back();
     }
-
     int createAccountWinHeight = 20;
     int createAccountWinWidth = 60;
     int createAccountWinY = (height - createAccountWinHeight) / 2;
     int createAccountWinX = (width - createAccountWinWidth) / 2;
-
     drawBox(createAccountWinX, createAccountWinY, createAccountWinWidth, createAccountWinHeight);
-
     // set center text
     int fillInfoX = createAccountWinX + (createAccountWinWidth - 19) / 2; // 19 is the length of "Fill your information"
-
     gotoxy(fillInfoX, createAccountWinY + 2);
     cout << "Fill your information";
-
     gotoxy(createAccountWinX + 2, createAccountWinY + 4);
     cout << "Full name: ";
-
     gotoxy(createAccountWinX + 2, createAccountWinY + 5);
     cout << "Email: ";
-
     gotoxy(createAccountWinX + 2, createAccountWinY + 6);
     cout << "Phone number: ";
-
     gotoxy(createAccountWinX + 2, createAccountWinY + 7);
     cout << "Username: ";
-
     gotoxy(createAccountWinX + 2, createAccountWinY + 8);
     cout << "Password: ";
-
     gotoxy(createAccountWinX + 2, createAccountWinY + 9);
     cout << "Confirm password: ";
-
     gotoxy(createAccountWinX + 2, createAccountWinY + 10);
     cout << "Account type: ";
 
+    // string fullname, email, phoneNumber, username, password, confirmPassword, type;
     string fullname, email, phoneNumber, username, password, confirmPassword, type="user";
     bool isAdmin = false, isUser = true;
     bool isDisable = false, isChangePassword = false;
@@ -1086,7 +1087,7 @@ void createAccount()
 
     gotoxy(createAccountWinX + 20, createAccountWinY + 6);
     getline(cin, phoneNumber);
-
+    
     gotoxy(createAccountWinX + 20, createAccountWinY + 7);
     getline(cin, username);
 
@@ -1096,19 +1097,17 @@ void createAccount()
         cout << "The account already exists!"; // Account is exists
 
         gotoxy(createAccountWinX + 20, createAccountWinY + 7);
-        cout << setw(createAccountWinWidth - 22) << " "; // Xóa nội dung dòng tài khoản
+        cout << setw(createAccountWinWidth - 22) << " "; // Delete account line content
         gotoxy(createAccountWinX + 20, createAccountWinY + 7);
         getline(cin, username);
 
         gotoxy(createAccountWinX + 2, createAccountWinY + 20);
-        cout << setw(createAccountWinWidth) << " "; // Xóa nội dung dòng thông báo
+        cout << setw(createAccountWinWidth) << " "; // Delete message line content
     }
 
     gotoxy(createAccountWinX + 20, createAccountWinY + 8);
     getline(cin, password);
-
     string passwordRequirements = "";
-
     // check password
     while (password.length() < 8 || password.length() > 12 || !hasUppercase(password) || !hasLowercase(password) || !hasDigit(password))
     {
@@ -1134,17 +1133,16 @@ void createAccount()
         cout << "Password required " << passwordRequirements.substr(0, passwordRequirements.length() - 2);
 
         gotoxy(createAccountWinX + 20, createAccountWinY + 8);
-        cout << setw(createAccountWinWidth - 22) << " "; // Xóa nội dung dòng mật khẩu
+        cout << setw(createAccountWinWidth - 22) << " "; // Clear passline contents
         gotoxy(createAccountWinX + 20, createAccountWinY + 8);
         getline(cin, password);
 
         gotoxy(createAccountWinX + 2, createAccountWinY + 20);
-        cout << setw(createAccountWinWidth + 45) << " "; // Xóa nội dung dòng thông báo
+        cout << setw(createAccountWinWidth + 45) << " "; // Delete message line content
     }
 
     gotoxy(createAccountWinX + 20, createAccountWinY + 9);
     getline(cin, confirmPassword);
-
     // check re-password
     while (password != confirmPassword)
     {
@@ -1152,11 +1150,10 @@ void createAccount()
         cout << "Password mismatch. Try again!";
 
         gotoxy(createAccountWinX + 20, createAccountWinY + 9);
-        cout << setw(createAccountWinWidth - 22) << " "; // Xóa nội dung dòng nhập lại mật khẩu
+        cout << setw(createAccountWinWidth - 22) << " "; // Clear the line of re-entering the password
         gotoxy(createAccountWinX + 20, createAccountWinY + 9);
         getline(cin, confirmPassword);
     }
-
     // account type
     gotoxy(createAccountWinX + 20, createAccountWinY + 10);
     while (true)
@@ -1168,7 +1165,6 @@ void createAccount()
         drawCheckbox(isAdmin, "Administrator");
         gotoxy(createAccountWinX + 2, createAccountWinY + 13);
         drawCheckbox(isUser, "User");
-
         // Wait for user input
         char input = getch();
         cout << input;
@@ -1188,7 +1184,6 @@ void createAccount()
         default:
             break;
         }
-
         if (input == 'q' || input == 'Q')
             break;
     }
@@ -1206,13 +1201,11 @@ void createAccount()
         // Draw checkboxes
         cout << "Press button 1, 2 or Q to:";
         gotoxy(createAccountWinX + 2, createAccountWinY + 15);
-        drawCheckbox(isChangePassword, "User must change password at next logon");
+        drawCheckbox(isChangePassword, "User must change password at next login");
         gotoxy(createAccountWinX + 2, createAccountWinY + 16);
         drawCheckbox(isDisable, "Account is disabled");
-
         // Wait for user input
         char input = getch();
-
         // Handle user input
         switch (input)
         {
@@ -1228,7 +1221,6 @@ void createAccount()
         if (input == 'q' || input == 'Q')
             break;
     }
-
     if (fullname.empty() || email.empty() || phoneNumber.empty() || username.empty() || password.empty() || confirmPassword.empty())
     {
         cout << "Fill full the information." << endl;
@@ -1239,14 +1231,201 @@ void createAccount()
         cout << "Create account is successful." << endl;
         account.writeActLog(account.getInfo().username, "creates an account with username " + username);
         account.addAccountToList(fullname, email, phoneNumber, username, password, type, isDisable, isChangePassword);
-
-        // auto create folder when create an account
-        string folder = "./FileManager/" + username;
-        
-        mkdir(folder.c_str());
-
         sleep(3);
         home();
+    }
+}
+
+void deleteAccount(string username)
+{
+    system("cls");
+    previousPage.push_back("DeleteAccount");
+    for (int i = 1; i < previousPage.size(); i++)
+        if (previousPage[i] == previousPage[i - 1])
+            previousPage.erase(previousPage.begin() + i);
+
+    int height = 20; // Sample height value, replace with actual height
+    int width = 60;  // Sample width value, replace with actual width
+
+    int accountWinHeight = 20;
+    int accountWinWidth = 60;
+    int accountWinY = (height - accountWinHeight) / 2;
+    int accountWinX = (width - accountWinWidth) / 2;
+
+    drawBox(accountWinX, accountWinY, accountWinWidth, accountWinHeight);
+
+    int fillInfoX = accountWinX + (accountWinWidth - 14) / 2; // 1 is the length of "Action Menu"
+
+    gotoxy(fillInfoX, accountWinY + 2);
+    cout << "Delete account";
+
+    gotoxy(accountWinX + 2, accountWinY + 4);
+    cout << "Are you sure you want to delete this " << username << " account?" << endl;
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(accountWinX + 5, accountWinY + 5);
+        if (selectedOption == 1)
+            cout << "[ Yes ]";
+        else
+            cout << "  Yes  ";
+
+        gotoxy(accountWinX + 5, accountWinY + 6);
+        if (selectedOption == 2)
+            cout << "[ No ]";
+        else
+            cout << " No  ";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        switch (key)
+        {
+        case 72: // Up arrow key
+            if (selectedOption > 1)
+                selectedOption--;
+            break;
+        case 80: // Down arrow key
+            if (selectedOption < 3)
+                selectedOption++;
+            break;
+        case 13: // Enter key
+            optionSelected = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (selectedOption == 1)
+    {
+        account.deleteAccount(username);
+        account.writeActLog(account.getInfo().username, "deletes an account with username " + username);
+        previousPage.pop_back();
+        listUser();
+    }
+    else
+    {
+        previousPage.pop_back();
+        back();
+    }
+}
+
+void actionMenu(string username)
+{
+    system("cls");
+    previousPage.push_back("ActionMenu_" + username);
+    for (int i = 1; i < previousPage.size(); i++)
+        if (previousPage[i] == previousPage[i - 1])
+            previousPage.erase(previousPage.begin() + i);
+
+    int height = 20; // Sample height value, replace with actual height
+    int width = 60;  // Sample width value, replace with actual width
+
+    int accountWinHeight = 20;
+    int accountWinWidth = 60;
+    int accountWinY = (height - accountWinHeight) / 2;
+    int accountWinX = (width - accountWinWidth) / 2;
+
+    drawBox(accountWinX, accountWinY, accountWinWidth, accountWinHeight);
+
+    int fillInfoX = accountWinX + (accountWinWidth - 11) / 2; // 1 is the length of "Action Menu"
+
+    gotoxy(fillInfoX, accountWinY + 2);
+    cout << "Action menu";
+
+    // Display option menu
+    gotoxy(accountWinX + 2, accountWinY + 4);
+    cout << "Selected User: " << username << endl;
+    gotoxy(accountWinX + 2, accountWinY + 5);
+    cout << "Options:" << endl;
+
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+
+    while (!optionSelected)
+    {
+        gotoxy(accountWinX + 2, accountWinY + 6);
+        if (selectedOption == 1)
+            cout << "-> 1. Edit Account";
+        else
+            cout << "   1. Edit Account";
+
+        gotoxy(accountWinX + 2, accountWinY + 7);
+        if (selectedOption == 2)
+            cout << "-> 2. Delete account";
+        else
+            cout << "   2. Delete account";
+
+        gotoxy(accountWinX + 2, accountWinY + 8);
+        if (selectedOption == 3)
+            cout << "-> 3. Active/inactive account";
+        else
+            cout << "   3. Active/inactive account";
+
+        gotoxy(accountWinX + 2, accountWinY + 9);
+        if (selectedOption == 4)
+            cout << "-> 4. Activity log";
+        else
+            cout << "   4. Activity log";
+
+        gotoxy(accountWinX + 2, accountWinY + 10);
+        if (selectedOption == 5)
+            cout << "-> 5. Back";
+        else
+            cout << "   5. Back";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        switch (key)
+        {
+        case 72: // Up arrow key
+            if (selectedOption > 1)
+                selectedOption--;
+            break;
+        case 80: // Down arrow key
+            if (selectedOption <= 5)
+                selectedOption++;
+            break;
+        case 13: // Enter key
+            optionSelected = true;
+            break;
+        default:
+            break;
+        }
+    }
+    cout << selectedOption;
+    // Process the user input for option
+    switch (selectedOption)
+    {
+    case 1:
+        // Perform Edit Account operation
+        updateAccount(username);
+        break;
+    case 2:
+        // Perform Delete Account operation
+        deleteAccount(username);
+        previousPage.pop_back();
+        listUser();
+        break;
+    case 3:
+        account.activeAccount(username);
+        previousPage.pop_back();
+        listUser();
+        break;
+    case 4:
+        activityLog(username);
+        break;
+    case 5:
+        previousPage.pop_back();
+        back();
+        break;
     }
 }
 
@@ -1254,81 +1433,135 @@ void listUser()
 {
     system("cls");
     previousPage.push_back("ListUser");
-    vector<UserInfo> dataUser = account.getList();
+    for (int i = 1; i < previousPage.size(); i++)
+        if (previousPage[i] == previousPage[i - 1])
+            previousPage.erase(previousPage.begin() + i);
 
-    int userListHeight = 5 + dataUser.size();
+    vector<UserInfo> dataUser = account.getList();
+    int height = 25; // Sample height value, replace with actual height
+    int width = 120; // Sample width value, replace with actual width
+
+    int userListHeight = 10 + dataUser.size();
     int userListWidth = 120;
     int userListY = (height - userListHeight) / 3;
     int userListX = (width - userListWidth) / 2;
 
     drawBox(userListX, userListY, userListWidth, userListHeight);
-    gotoxy(userListX + 3, userListY + 2);
+    gotoxy(userListX + 5, userListY + 2);
     cout << "STT";
-    gotoxy(userListX + 10, userListY + 2);
+    gotoxy(userListX + 15, userListY + 2);
     cout << "Name";
-    gotoxy(userListX + 30, userListY + 2);
+    gotoxy(userListX + 35, userListY + 2);
     cout << "Email";
-    gotoxy(userListX + 55, userListY + 2);
+    gotoxy(userListX + 60, userListY + 2);
     cout << "Phone number";
-    gotoxy(userListX + 70, userListY + 2);
+    gotoxy(userListX + 75, userListY + 2);
     cout << "Username";
-    gotoxy(userListX + 85, userListY + 2);
+    gotoxy(userListX + 90, userListY + 2);
     cout << "Role";
-    gotoxy(userListX + 100, userListY + 2);
+    gotoxy(userListX + 105, userListY + 2);
     cout << "Status";
-    int row = 3;
-    for (int i = 0; i < dataUser.size(); i++)
-    {
-        gotoxy(userListX + 3, userListY + row);
-        cout << i + 1;
-        gotoxy(userListX + 10, userListY + row);
-        cout << dataUser[i].fullName;
-        gotoxy(userListX + 30, userListY + row);
-        cout << dataUser[i].email;
-        gotoxy(userListX + 55, userListY + row);
-        cout << dataUser[i].phoneNumber;
-        gotoxy(userListX + 70, userListY + row);
-        cout << dataUser[i].username;
-        gotoxy(userListX + 85, userListY + row);
-        cout << dataUser[i].typeAccount;
-        gotoxy(userListX + 100, userListY + row);
-        cout << dataUser[i].isDisable;
-        row++;
-    }
-
-    int selectedOption = 1;      // Store the currently selected option
     bool optionSelected = false; // Flag to indicate if an option is selected
+    int selectedOption = 0;
+    bool isCreateAccountSelected = false;
+    bool isBackSelected = false; // Flag to indicate if "Back" is selected
 
     while (!optionSelected)
     {
+        int row = 3;
+        for (int i = 0; i < dataUser.size(); i++)
+        {
+            gotoxy(userListX + 5, userListY + row);
+            if (selectedOption == i)
+            {
+                cout << " -> ";
+            }
+            else
+            {
+                cout << "    ";
+            }
+            cout << i + 1;
+            gotoxy(userListX + 15, userListY + row);
+            cout << dataUser[i].fullName;
+            gotoxy(userListX + 35, userListY + row);
+            cout << dataUser[i].email;
+            gotoxy(userListX + 60, userListY + row);
+            cout << dataUser[i].phoneNumber;
+            gotoxy(userListX + 75, userListY + row);
+            cout << dataUser[i].username;
+            gotoxy(userListX + 90, userListY + row);
+            cout << dataUser[i].typeAccount;
+            gotoxy(userListX + 105, userListY + row);
+            cout << dataUser[i].isDisable;
+            row++;
+        }
+
         // Print the menu options
-        gotoxy(userListX + 30, userListY + userListHeight - 2);
-        if (selectedOption == 1)
-            cout << "[ Back ]";
+        gotoxy(userListX + 30, userListY + userListHeight - 3);
+        if (selectedOption == dataUser.size()) // Check if the "Create Account" option is selected
+        {
+            cout << "[ Create account ]";
+            isCreateAccountSelected = true;
+        }
         else
+        {
+            cout << "  Create account  ";
+            isCreateAccountSelected = false;
+        }
+
+        gotoxy(userListX + 30, userListY + userListHeight - 2);
+        if (selectedOption == dataUser.size() + 1) // Check if the "Back" option is selected
+        {
+            cout << "[ Back ]";
+            isBackSelected = true;
+        }
+        else
+        {
             cout << "  Back  ";
+            isBackSelected = false;
+        }
 
         // Get the user input
         char key = _getch();
 
         // Process the user input
-        if (key == 13)
+        switch (key)
+        {
+        case 72:                                                                                 // up arrow key
+            selectedOption = (selectedOption - 1 + dataUser.size() + 2) % (dataUser.size() + 2); // +1 for the "Back" option
+            break;
+        case 80:                                                           // down arrow key
+            selectedOption = (selectedOption + 1) % (dataUser.size() + 2); // +1 for the "Back" option
+            break;
+        case 13: // enter key
             optionSelected = true;
+            break;
+        }
     }
 
     // Process the selected option
-    switch (selectedOption)
+    if (isBackSelected)
     {
-    case 1:
         previousPage.pop_back();
         back();
-        break;
-    default:
-        break;
+    }
+    else if (isCreateAccountSelected)
+    {
+        createAccount();
+    }
+    else
+    {
+        // Process the selected element
+        if (selectedOption >= 0 && selectedOption < dataUser.size())
+        {
+            UserInfo &selectedUser = dataUser[selectedOption];
+            actionMenu(selectedUser.username);
+        }
     }
 }
 
-void fileManager(){
+void fileManager()
+{
     system("cls");
     previousPage.push_back("Home");
 
@@ -1358,9 +1591,9 @@ void fileManager(){
             cout << "-> 2. List file.";
         else
             cout << "   2. List file.";
-        
+
         gotoxy(fileX + 2, fileY + 6);
-        if (selectedOption == 3)        
+        if (selectedOption == 3)
             cout << "-> 3. Back";
         else
             cout << "   3. Back";
@@ -1395,12 +1628,12 @@ void fileManager(){
         break;
     case 2:
         // Handle list file option
-        PrintFiles();
+        printFiles();
         break;
     case 3:
         previousPage.pop_back();
         back();
-        break;    
+        break;
     default:
         break;
     }
@@ -1415,7 +1648,7 @@ void createFile()
     int fileY = (height - fileHeight) / 2;
     int fileX = (width - fileWidth) / 2;
 
-    drawBox(fileX, fileY, fileWidth, fileHeight); 
+    drawBox(fileX, fileY, fileWidth, fileHeight);
 
     gotoxy(fileX + 2, fileY + 2);
     string dirName;
@@ -1423,14 +1656,13 @@ void createFile()
     cin >> dirName;
 
     gotoxy(fileX + 2, fileY + 3);
-    string fileName;   
+    string fileName;
     cout << "Enter file name: ";
     cin >> fileName;
     file.createFile(dirName, fileName);
 
     int selectedOption = 1;      // Store the currently selected option
     bool optionSelected = false; // Flag to indicate if an option is selected
-
 
     while (!optionSelected)
     {
@@ -1459,7 +1691,7 @@ void createFile()
     }
 }
 
-void PrintFiles()
+void printFiles()
 {
     system("cls");
     int fileHeight = 10;
@@ -1467,213 +1699,217 @@ void PrintFiles()
     int fileY = (height - fileHeight) / 2;
     int fileX = (width - fileWidth) / 2;
 
-    drawBox(fileX, fileY, fileWidth, fileHeight); 
+    drawBox(fileX, fileY, fileWidth, fileHeight);
 
     string folderName, fname;
     gotoxy(fileX + 2, fileY + 2);
     cout << "Enter foldername: ";
     cin >> folderName;
-    int d=0;
+    int d = 0;
     vector<UserInfo> dataUser = account.getList();
-    for (int i = 0; i < dataUser.size(); i++){
+    for (int i = 0; i < dataUser.size(); i++)
+    {
         if (folderName == dataUser[i].username)
         {
             fname = folderName;
         }
-        else d++;
-    }    
-    if (d==dataUser.size()) cout << "No one has this name!";
-        
+        else
+            d++;
+    }
+    if (d == dataUser.size())
+        cout << "No one has this name!";
+
     system("cls");
     previousPage.push_back("File manager");
 
-    drawBox(fileX, fileY, fileWidth, fileHeight);  
-    
-    string folderPath = "./FileManager/" + fname; 
+    string folderPath = "./FileManager/" + fname;
     vector<string> fileList = PrintFiles(folderPath);
-
-    gotoxy(fileX + 2, fileY + 2);
-    cout << "Files in folder: " << folderPath << endl;
-    
-    int selectedOption = 0;      // Store the currently selected option
-    bool optionSelected = false; // Flag to indicate if an option is selected
-
-    while (!optionSelected)
+    if (fileList.size() !=0)
     {
-        // Print the menu options
-        for (int i = 0; i < fileList.size(); i++)
-        {
-            gotoxy(fileX + 2, fileY + i + 4);
-            if (selectedOption == i)
-                        cout << "-> "<< i + 1 << "." << fileList[i];
-                    else
-                        cout << "   "<< i + 1 << "." << fileList[i];
-        }
+        drawBox(fileX, fileY, fileWidth, fileHeight);
+        gotoxy(fileX + 2, fileY + 2);
+        cout << "Files in folder: " << folderPath << endl;
 
-        char key = _getch();
-        switch (key)
-        {
-        case 72: // Phím mũi tên lên
-            if (selectedOption > 0)
-                selectedOption--;
-            break;
-        case 80: // Phím mũi tên xuống
-            if (selectedOption < fileList.size() - 1)
-                selectedOption++;
-            break;
-        case 13: // Phím Enter
-            optionSelected = true;
-            break;
-        default:
-            break;
-        }
-    }
+        int selectedOption = 0;      // Store the currently selected option
+        bool optionSelected = false; // Flag to indicate if an option is selected
 
-    // Xử lý tùy chọn được chọn
-    if (selectedOption >= 0 && selectedOption < fileList.size())
-    {
-        string selectedFileName = fileList[selectedOption];
-
-        // Xử lý tệp tin được chọn
-        for(int i = 0; i < fileList.size(); i++)
+        while (!optionSelected)
         {
-            if (selectedFileName == fileList[i])
+            // Print the menu options
+            for (int i = 0; i < fileList.size(); i++)
             {
-                string namefile = selectedFileName.substr(0, selectedFileName.length() - 4);
-                file.getInfoFile(fname, namefile, fileInfo, fileAccess);        // get all information
-                
-                string infoname = account.getInfo().username;
-                file.setUserInfo(infoname);
-                system("cls");
-                fileHeight = 15;
+                gotoxy(fileX + 2, fileY + i + 4);
+                if (selectedOption == i)
+                    cout << "-> " << i + 1 << "." << fileList[i];
+                else
+                    cout << "   " << i + 1 << "." << fileList[i];
+            }
 
-                drawBox(fileX, fileY, fileWidth, fileHeight);
+            char key = _getch();
+            switch (key)
+            {
+            case 72: // Phím mũi tên lên
+                if (selectedOption > 0)
+                    selectedOption--;
+                break;
+            case 80: // Phím mũi tên xuống
+                if (selectedOption < fileList.size() - 1)
+                    selectedOption++;
+                break;
+            case 13: // Phím Enter
+                optionSelected = true;
+                break;
+            default:
+                break;
+            }
+        }
 
-                int selectedOption = 1;      // Store the currently selected option
-                bool optionSelected = false; // Flag to indicate if an option is selected
-                
-                while (!optionSelected)
+        // Xử lý tùy chọn được chọn
+        if (selectedOption >= 0 && selectedOption < fileList.size())
+        {
+            string selectedFileName = fileList[selectedOption];
+
+            // Xử lý tệp tin được chọn
+            for (int i = 0; i < fileList.size(); i++)
+            {
+                if (selectedFileName == fileList[i])
                 {
-                    // file.checkPermission(infoname,"view", fileAccess)
-                    if ( (file.checkPermission(infoname, "view", fileAccess)) && 
-                         (!file.checkPermission(infoname, "edit", fileAccess)) )
+                    string namefile = selectedFileName.substr(0, selectedFileName.length() - 4);
+                    file.getInfoFile(fname, namefile, fileInfo, fileAccess); // get all information
+                    cout << "author" << fileInfo.authorName;
+                    string infoname = account.getInfo().username;
+                    file.setUserInfo(infoname);
+                    system("cls");
+                    fileHeight = 15;
+
+                    drawBox(fileX, fileY, fileWidth, fileHeight);
+
+                    int selectedOption = 1;      // Store the currently selected option
+                    bool optionSelected = false; // Flag to indicate if an option is selected
+
+                    while (!optionSelected)
                     {
+                        // file.checkPermission(infoname,"view", fileAccess)
+                        if ((file.checkPermission(infoname, "view", fileAccess)) &&
+                            (!file.checkPermission(infoname, "edit", fileAccess)))
+                        {
 
-                        gotoxy(fileX + 2, fileY + 3);
-                        cout << "\t\tMenu";
+                            gotoxy(fileX + 2, fileY + 3);
+                            cout << "\t\tMenu";
 
-                        gotoxy(fileX + 2, fileY + 5);
-                        if (selectedOption == 2)
-                            cout << "[View file]";
+                            gotoxy(fileX + 2, fileY + 5);
+                            if (selectedOption == 2)
+                                cout << "[View file]";
+                            else
+                                cout << " View file ";
+                        }
+                        else if (file.checkPermission(infoname, "edit", fileAccess))
+                        {
+                            gotoxy(fileX + 2, fileY + 2);
+                            cout << "\t\tMenu";
+
+                            gotoxy(fileX + 2, fileY + 4);
+                            if (selectedOption == 1)
+                                cout << "[Edit file]";
+                            else
+                                cout << " Edit file ";
+
+                            gotoxy(fileX + 2, fileY + 5);
+                            if (selectedOption == 2)
+                                cout << "[View file]";
+                            else
+                                cout << " View file ";
+                        }
+                        // Print the menu options
+                        gotoxy(fileX + 2, fileY + 6);
+                        if (selectedOption == 3)
+                            cout << "[Rename file]";
                         else
-                            cout << " View file ";
+                            cout << " Rename file ";
+
+                        gotoxy(fileX + 2, fileY + 7);
+                        if (selectedOption == 4) // display with admin
+                            cout << "[Delete file]";
+                        else
+                            cout << " Delete file ";
+
+                        gotoxy(fileX + 2, fileY + 8);
+                        if (selectedOption == 5)
+                            cout << "[Move file]";
+                        else
+                            cout << " Move file ";
+
+                        gotoxy(fileX + 2, fileY + 9);
+                        if (selectedOption == 6)
+                            cout << "[Copy file]";
+                        else
+                            cout << " Copy file ";
+
+                        gotoxy(fileX + 2, fileY + 10);
+                        if (selectedOption == 7)
+                            cout << "[Add permission]";
+                        else
+                            cout << " Add permission ";
+
+                        gotoxy(fileX + 2, fileY + 11);
+                        if (selectedOption == 8)
+                            cout << "[Back]";
+                        else
+                            cout << " Back ";
+
+                        // Get the user input
+                        char key = _getch();
+
+                        // Process the user input
+                        switch (key)
+                        {
+                        case 72: // Up arrow key
+                            if (selectedOption > 1)
+                                selectedOption--;
+                            break;
+                        case 80: // Down arrow key
+                            if (selectedOption < 8)
+                                selectedOption++;
+                            break;
+                        case 13: // Enter key
+                            optionSelected = true;
+                            break;
+                        default:
+                            break;
+                        }
                     }
-                    else if (file.checkPermission(infoname, "edit", fileAccess))
+
+                    // Process the selected option
+                    switch (selectedOption)
                     {
-                        gotoxy(fileX + 2, fileY + 2);
-                        cout << "\t\tMenu";
-                        
-                        gotoxy(fileX + 2, fileY + 4);
-                        if (selectedOption == 1)
-                            cout << "[Edit file]";
-                        else
-                            cout << " Edit file ";
-
-                        gotoxy(fileX + 2, fileY + 5);
-                        if (selectedOption == 2)
-                            cout << "[View file]";
-                        else
-                            cout << " View file ";
-                    }
-                    // Print the menu options
-                    gotoxy(fileX + 2, fileY + 6);
-                    if (selectedOption == 3)
-                        cout << "[Rename file]";
-                    else
-                        cout << " Rename file ";
-
-                    gotoxy(fileX + 2, fileY + 7);
-                    if (selectedOption == 4) // display with admin
-                        cout << "[Delete file]";
-                    else
-                        cout << " Delete file ";
-                    
-                    gotoxy(fileX + 2, fileY + 8);
-                    if (selectedOption == 5)        
-                        cout << "[Move file]";
-                    else
-                        cout << " Move file ";
-
-                    gotoxy(fileX + 2, fileY + 9);
-                    if (selectedOption == 6)        
-                        cout << "[Copy file]";
-                    else
-                        cout << " Copy file ";
-
-                    gotoxy(fileX + 2, fileY + 10);
-                    if (selectedOption == 7)        
-                        cout << "[Add permission]";
-                    else
-                        cout << " Add permission ";
-
-                    gotoxy(fileX + 2, fileY + 11);
-                    if (selectedOption == 8)        
-                        cout << "[Back]";
-                    else
-                        cout << " Back ";
-
-                    // Get the user input
-                    char key = _getch();
-
-                    // Process the user input
-                    switch (key)
-                    {
-                    case 72: // Up arrow key
-                        if (selectedOption > 1)
-                            selectedOption--;
-                        break;
-                    case 80: // Down arrow key
-                        if (selectedOption < 8)
-                            selectedOption++;
-                        break;
-                    case 13: // Enter key
-                        optionSelected = true;
-                        break;
-                    default:
-                        break;
-                    }
-                }
-
-                // Process the selected option
-                switch (selectedOption)
-                {
                     case 1:
                         writeInfoFile(fname, namefile);
                         break;
                     case 2:
-                        getInfoFile(fname,namefile);
+                        getInfoFile(fname, namefile);
                         break;
                     case 3:
-                        renameFile(fname, namefile, fileInfo, fileAccess);
+                        renameFile(fname, namefile);
                         break;
                     case 4:
-                        deleteFile(fname, namefile, fileInfo, fileAccess);
+                        deleteFile(fname, namefile);
                         break;
                     case 5:
-                        moveFile(fname, namefile, fileInfo, fileAccess);
+                        moveFile(fname, namefile);
                         break;
                     case 6:
-                        copyFile(fname, namefile, fileInfo, fileAccess);
+                        copyFile(fname, namefile);
                         break;
                     case 7:
-                        permissionsFile(fname, namefile, fileInfo, fileAccess);
+                        permissionsFile(fname, namefile);
                         break;
                     case 8:
                         previousPage.pop_back();
                         back();
-                        break;    
+                        break;
                     default:
                         break;
+                    }
                 }
             }
         }
@@ -1691,7 +1927,8 @@ void writeInfoFile(string dirName, string fileName)
     // Get user input for file content
     cout << "Enter file content (enter 'q' to finish):\n";
     string line;
-    while (getline(cin, line) && line != "q") {
+    while (getline(cin, line) && line != "q")
+    {
         fileInfo.content.push_back(line);
     }
 
@@ -1699,7 +1936,8 @@ void writeInfoFile(string dirName, string fileName)
     cout << "Enter viewers (separated by commas): ";
     getline(cin, line);
     istringstream viewersStream(line);
-    while (getline(viewersStream, line, ',')) {
+    while (getline(viewersStream, line, ','))
+    {
         fileAccess.viewers.push_back(line);
     }
 
@@ -1707,7 +1945,8 @@ void writeInfoFile(string dirName, string fileName)
     cout << "Enter editors (separated by commas): ";
     getline(cin, line);
     istringstream editorsStream(line);
-    while (getline(editorsStream, line, ',')) {
+    while (getline(editorsStream, line, ','))
+    {
         fileAccess.editors.push_back(line);
     }
 
@@ -1715,7 +1954,8 @@ void writeInfoFile(string dirName, string fileName)
     cout << "Enter deleters (separated by commas): ";
     getline(cin, line);
     istringstream deletersStream(line);
-    while (getline(deletersStream, line, ',')) {
+    while (getline(deletersStream, line, ','))
+    {
         fileAccess.deleters.push_back(line);
     }
 
@@ -1723,15 +1963,44 @@ void writeInfoFile(string dirName, string fileName)
     cout << "Enter renamers (separated by commas): ";
     getline(cin, line);
     istringstream renamersStream(line);
-    while (getline(renamersStream, line, ',')) {
+    while (getline(renamersStream, line, ','))
+    {
         fileAccess.renamers.push_back(line);
     }
 
     // Call the writeInfoFile function
     file.writeInfoFile(dirName, fileName, fileInfo, fileAccess);
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+
+    while (!optionSelected)
+    {
+        // Print the menu options
+        if (selectedOption == 1)
+            cout << "[ Back ]";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        if (key == 13)
+            optionSelected = true;
+    }
+
+    // Process the selected option
+    switch (selectedOption)
+    {
+    case 1:
+        previousPage.pop_back();
+        back();
+        break;
+    default:
+        break;
+    }
 }
 
-void moveFile(string currentDir, string fileName, FileInfo fileInfo, Permission fileAccess){
+void moveFile(string currentDir, string fileName)
+{
     system("cls");
 
     int moveHeight = 10;
@@ -1739,7 +2008,7 @@ void moveFile(string currentDir, string fileName, FileInfo fileInfo, Permission 
     int moveY = (height - moveHeight) / 2;
     int moveX = (width - moveWidth) / 2;
 
-    drawBox(moveX, moveY, moveWidth, moveHeight); 
+    drawBox(moveX, moveY, moveWidth, moveHeight);
 
     string targetDir;
 
@@ -1796,7 +2065,8 @@ void moveFile(string currentDir, string fileName, FileInfo fileInfo, Permission 
     }
 }
 
-void renameFile(string currentDir, string fileName, FileInfo fileInfo, Permission fileAccess){
+void renameFile(string currentDir, string fileName)
+{
     system("cls");
 
     int renameHeight = 10;
@@ -1804,9 +2074,14 @@ void renameFile(string currentDir, string fileName, FileInfo fileInfo, Permissio
     int renameY = (height - renameHeight) / 2;
     int renameX = (width - renameWidth) / 2;
 
-    drawBox(renameX, renameY, renameWidth, renameHeight); 
+    drawBox(renameX, renameY, renameWidth, renameHeight);
 
     string newFileName;
+
+    // for (int i = 0; i < fileAccess.renamers.size(); i++)
+    // {
+    //     cout << fileAccess.renamers[i] << ",";
+    // }
 
     gotoxy(renameX + 2, renameY + 2);
     cout << "Enter new name: ";
@@ -1814,12 +2089,13 @@ void renameFile(string currentDir, string fileName, FileInfo fileInfo, Permissio
 
     // Call the renameFile method
     int result = file.renameFile(currentDir, fileName, newFileName, fileInfo, fileAccess);
-    
+
     // Check the result
     if (result == 1)
     {
         gotoxy(renameX + 2, renameY + 5);
         cout << "File renamed successfully." << endl;
+        account.writeActLog(account.getInfo().username, "renamed file " + fileName);
     }
     else if (result == -2)
     {
@@ -1861,7 +2137,8 @@ void renameFile(string currentDir, string fileName, FileInfo fileInfo, Permissio
     }
 }
 
-void copyFile(string currentDir, string fileName, FileInfo fileInfo, Permission fileAccess){
+void copyFile(string currentDir, string fileName)
+{
     system("cls");
 
     int copyHeight = 10;
@@ -1869,7 +2146,7 @@ void copyFile(string currentDir, string fileName, FileInfo fileInfo, Permission 
     int copyY = (height - copyHeight) / 2;
     int copyX = (width - copyWidth) / 2;
 
-    drawBox(copyX, copyY, copyWidth, copyHeight); 
+    drawBox(copyX, copyY, copyWidth, copyHeight);
 
     string targetDir;
 
@@ -1877,14 +2154,14 @@ void copyFile(string currentDir, string fileName, FileInfo fileInfo, Permission 
     cout << "Enter the target directory: ";
     cin >> targetDir;
 
-
     // Call the copyFile method
     int result = file.copyFile(currentDir, targetDir, fileName, fileInfo, fileAccess);
-    
+
     // Check the result
     if (result == 1)
     {
         gotoxy(copyX + 2, copyY + 5);
+        account.writeActLog(account.getInfo().username, "copied file " + fileName);
         cout << "File copied successfully." << endl;
     }
     else if (result == -2)
@@ -1927,7 +2204,8 @@ void copyFile(string currentDir, string fileName, FileInfo fileInfo, Permission 
     }
 }
 
-void deleteFile(string currentDir, string fileName, FileInfo fileInfo, Permission fileAccess){
+void deleteFile(string currentDir, string fileName)
+{
     system("cls");
 
     int deleteHeight = 10;
@@ -1935,23 +2213,26 @@ void deleteFile(string currentDir, string fileName, FileInfo fileInfo, Permissio
     int deleteY = (height - deleteHeight) / 2;
     int deleteX = (width - deleteWidth) / 2;
 
-    drawBox(deleteX, deleteY, deleteWidth, deleteHeight); 
+    drawBox(deleteX, deleteY, deleteWidth, deleteHeight);
 
     string check;
+    gotoxy(deleteX + 2, deleteY + 1);
+    cout << fileInfo.authorName;
 
     gotoxy(deleteX + 2, deleteY + 2);
     cout << "Are you sure you want to delete? (Y/N)";
     cin >> check;
 
-    if (check == "Y" || check =="y") 
+    if (check == "Y" || check == "y")
     {
         // Call the deleteFile method
         int result = file.deleteFile(currentDir, fileName, fileInfo, fileAccess);
-        
+
         // Check the result
         if (result == 1)
         {
             gotoxy(deleteX + 2, deleteY + 5);
+            account.writeActLog(account.getInfo().username, "deleted file " + fileName);
             cout << "File deleted successfully." << endl;
         }
         else if (result == -2)
@@ -1995,7 +2276,8 @@ void deleteFile(string currentDir, string fileName, FileInfo fileInfo, Permissio
     }
 }
 
-void permissionsFile(string currentDir, string fileName, FileInfo fileInfo, Permission fileAccess){
+void permissionsFile(string currentDir, string fileName)
+{
     system("cls");
 
     int permissionsHeight = 10;
@@ -2003,7 +2285,7 @@ void permissionsFile(string currentDir, string fileName, FileInfo fileInfo, Perm
     int permissionsY = (height - permissionsHeight) / 2;
     int permissionsX = (width - permissionsWidth) / 2;
 
-    drawBox(permissionsX, permissionsY, permissionsWidth, permissionsHeight); 
+    drawBox(permissionsX, permissionsY, permissionsWidth, permissionsHeight);
 
     string targetUser;
     string permissionInput;
@@ -2012,7 +2294,7 @@ void permissionsFile(string currentDir, string fileName, FileInfo fileInfo, Perm
     gotoxy(permissionsX + 2, permissionsY + 2);
     cout << "Enter the target user: ";
     cin >> targetUser;
-    
+
     cin.ignore();
     gotoxy(permissionsX + 2, permissionsY + 3);
     cout << "Enter permissions (separated by commas): ";
@@ -2026,14 +2308,15 @@ void permissionsFile(string currentDir, string fileName, FileInfo fileInfo, Perm
     }
 
     // Call the permissionsFile method
-    int result = file.permissionsFile( targetUser, fileName, permission, fileInfo, fileAccess);
+    int result = file.permissionsFile(targetUser, fileName, permission, fileInfo, fileAccess);
     
-    file.writeInfoFile(currentDir, fileName, fileInfo, fileAccess);
 
     // Check the result
     if (result == 1)
     {
+        file.writeInfoFile(currentDir, fileName, fileInfo, fileAccess);
         gotoxy(permissionsX + 2, permissionsY + 5);
+        account.writeActLog(account.getInfo().username, "grants users the right to " + permissionInput + " for file" + fileName);
         cout << "Done ." << endl;
     }
     else if (result == -2)
@@ -2057,7 +2340,7 @@ void permissionsFile(string currentDir, string fileName, FileInfo fileInfo, Perm
             cout << "[ Back ]";
 
         // Get the user input
-        char key = _getch();    
+        char key = _getch();
 
         // Process the user input
         if (key == 13)
@@ -2076,38 +2359,90 @@ void permissionsFile(string currentDir, string fileName, FileInfo fileInfo, Perm
     }
 }
 
-void getInfoFile(string dirName, string fileName){
+void getInfoFile(string dirName, string fileName)
+{
     system("cls");
 
-    file.getInfoFile(dirName, fileName, fileInfo, fileAccess);
+    int d = fileInfo.content.size();
+    int readHeight = 13 + d;
+    int readWidth = 70;
+    int readY = (height - readHeight) / 2;
+    int readX = (width - readWidth) / 2;
+    
+
+    drawBox(readX, readY, readWidth, readHeight);
+
+    gotoxy(readX + 2, readY + 2);
     cout << "Author: " << fileInfo.authorName << endl;
 
-    cout << "Viewers: ";
-    for (const auto& viewer : fileAccess.viewers) {
+    gotoxy(readX + 2, readY + 4);
+    cout << "Viewer: ";
+    for (const auto &viewer : fileAccess.viewers)
+    {
         cout << viewer << ", ";
     }
     cout << endl;
 
-    cout << "Editors: ";
-    for (const auto& editor : fileAccess.editors) {
+    gotoxy(readX + 2, readY + 5);
+    cout << "Editor: ";
+    for (const auto &editor : fileAccess.editors)
+    {
         cout << editor << ", ";
     }
     cout << endl;
 
-    cout << "Deleters: ";
-    for (const auto& deleter : fileAccess.deleters) {
+    gotoxy(readX + 2, readY + 6);
+    cout << "Deleter: ";
+    for (const auto &deleter : fileAccess.deleters)
+    {
         cout << deleter << ", ";
     }
     cout << endl;
 
-    cout << "Renamers: ";
-    for (const auto& renamer : fileAccess.renamers) {
+    gotoxy(readX + 2, readY + 7);
+    cout << "Renames: ";
+    for (const auto &renamer : fileAccess.renamers)
+    {
         cout << renamer << ", ";
     }
     cout << endl;
 
+    gotoxy(readX + 2, readY + 8);
     cout << "Content:" << endl;
-    for (const auto& contentLine : fileInfo.content) {
+    int i = 9;
+    for (const auto &contentLine : fileInfo.content)
+    {
+        gotoxy(readX + 2, readY + i);
         cout << contentLine << endl;
+        i++;
+    }
+    
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(readX + 2, readY + d + 10);
+        if (selectedOption == 1)
+            cout << "[ Back ]";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        if (key == 13)
+            optionSelected = true;
+    }
+
+    // Process the selected option
+    switch (selectedOption)
+    {
+    case 1:
+        previousPage.pop_back();
+        back();
+        break;
+    default:
+        break;
     }
 }
