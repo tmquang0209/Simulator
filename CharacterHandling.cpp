@@ -1,5 +1,6 @@
-﻿#include <iostream>
+#include <iostream>
 #include <fstream>
+#include <time.h>
 #include "CharacterHandling.h"
 using namespace std;
 
