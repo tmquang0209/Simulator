@@ -29,6 +29,7 @@ vector<string> previousPage;
 void back();
 void home();
 void login();
+void logout();
 void changePassword();
 void accountInformation();
 void updateAccount(string username);
@@ -173,15 +174,9 @@ void home()
 
         gotoxy(homeWinX + 2, homeWinY + 8);
         if (selectedOption == 5)
-            cout << "-> 5. Create user.";
+            cout << "-> 5. Logout";
         else
-            cout << "   5. Create user.";
-
-        gotoxy(homeWinX + 2, homeWinY + 9);
-        if (selectedOption == 6)
-            cout << "-> 6. Logout";
-        else
-            cout << "   6. Logout";
+            cout << "   5. Logout";
 
         // Get the user input
         char key = _getch();
@@ -192,13 +187,14 @@ void home()
         case 72: // Up arrow key
             if (selectedOption > 1)
                 selectedOption--;
-            if (selectedOption == 3 && account.getInfo().typeAccount != "administrator")
+
+            if (selectedOption == 2 && account.getInfo().typeAccount != "administrator")
                 selectedOption--;
             break;
         case 80: // Down arrow key
             if (selectedOption < 6)
                 selectedOption++;
-            if (selectedOption == 1 && account.getInfo().typeAccount != "administrator")
+            if (selectedOption == 2 && account.getInfo().typeAccount != "administrator")
                 selectedOption++;
             break;
         case 13: // Enter key
@@ -228,9 +224,7 @@ void home()
         fileManager();
         break;
     case 5:
-        createAccount();
-        break;
-    case 6:
+        logout();
         break;
     default:
         break;
@@ -362,6 +356,11 @@ void login()
     {
         forgotPassword();
     }
+}
+
+void logout()
+{
+    login();
 }
 
 void changePassword()
@@ -2052,17 +2051,33 @@ void getInfoFile(string dirName, string fileName)
 void editFile(string dirName, string fileName)
 {
     system("cls");
+    int moveHeight = 10;
+    int moveWidth = 60;
+    int moveY = (height - moveHeight) / 2;
+    int moveX = (width - moveWidth) / 2;
 
+    drawBox(moveX, moveY, moveWidth, moveHeight);
     // Get user input for file content
+    gotoxy(moveX + 2, moveY + 2);
     cout << "Enter file content (enter 'q' to finish):\n";
     string line;
-    while (getline(cin, line) && line != "q")
+    int inputY = moveY + 3; // Starting y-coordinate for user input
+
+    while (true)
     {
+        gotoxy(moveX + 2, inputY);
+        getline(cin, line);
+
+        if (line == "q")
+            break;
+
         fileInfo.content.push_back(line);
+        inputY++; // Move the input location to the next line
     }
 
     // Call the writeInfoFile function
     file.writeInfoFile(dirName, fileName, fileInfo, fileAccess);
+    back();
 }
 
 void moveFile(string currentDir, string fileName)
