@@ -17,6 +17,7 @@ protected:
 
 public:
     Account();
+    Account(UserInfo info);
     void addToList(UserInfo info);
     void addAccountToList(string fullname, string email, string phoneNumber, string username, string password, string type, bool isDisable, bool isChangePassword);
     void removeToList(string username);

@@ -8,9 +8,9 @@ using namespace std;
 
 FileManager::FileManager() {}
 
-void FileManager::setUserInfo(string &username)
+void FileManager::setUserInfo(UserInfo info)
 {
-    info.username = username;
+    this->info = info;
 }
 
 bool FileManager::checkPermission(string username, string typeCheck, Permission fileAccess)
@@ -199,8 +199,18 @@ void FileManager::createFile(string dirName, string fileName)
 {
     string filePath = "./FileManager/" + dirName + "/" + fileName + ".txt";
     ofstream newFile(filePath);
-    // string file_Path = "./FileManager/" + dirName + "/" + fileName + "_data.txt";
-    // ofstream newFile_(file_Path);
+
+    string file_Path = "./FileManager/" + dirName + "/" + fileName + "_data.txt";
+    ofstream newFile_(file_Path);
+
+    vector<string> content;
+    FileInfo fileInfo;
+    fileInfo.authorName = info.username;
+    fileInfo.content = content;
+
+    Permission fileAccess;
+
+    writeInfoFile(dirName, fileName, fileInfo, fileAccess);
 }
 
 // void FileManager::viewFile(string dirName, string fileName, FileInfo fileInfo, Permission fileAccess)
@@ -394,13 +404,13 @@ int FileManager::permissionsFile(string targetUser, string targetFile, vector<st
         {
             for (int i = 0; i < permission.size(); i++)
             {
-                if (permission[i] == "view")
+                if (permission[i] == "view" && !checkPermission(targetUser, "view", fileAccess))
                     fileAccess.viewers.push_back(targetUser);
-                if (permission[i] == "edit")
+                if (permission[i] == "edit" && !checkPermission(targetUser, "edit", fileAccess))
                     fileAccess.editors.push_back(targetUser);
-                if (permission[i] == "delete")
+                if (permission[i] == "delete" && !checkPermission(targetUser, "delete", fileAccess))
                     fileAccess.deleters.push_back(targetUser);
-                if (permission[i] == "rename")
+                if (permission[i] == "rename" && !checkPermission(targetUser, "rename", fileAccess))
                     fileAccess.renamers.push_back(targetUser);
             }
             return 1;

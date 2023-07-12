@@ -18,6 +18,11 @@ Account::Account()
     readFileAccount();
 }
 
+Account::Account(UserInfo info)
+{
+    this->info = info;
+}
+
 void Account::addToList(UserInfo info)
 {
     list.push_back(info);

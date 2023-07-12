@@ -50,6 +50,7 @@ void moveFile(string dirName, string fileName);
 void renameFile(string dirName, string fileName);
 void copyFile(string dirName, string fileName);
 void deleteFile(string dirName, string fileName);
+void manageAccessFile(string dirName, string fileName);
 void permissionsFile(string dirName, string fileName);
 
 int main()
@@ -324,6 +325,7 @@ void login()
             {
                 cout << "Login success." << endl;
                 account.writeActLog(username, "login success.");
+                file.setUserInfo(account.getInfo());
                 SetConsoleTextAttribute(hConsole, 15);
                 sleep(3);
                 home();
@@ -1735,7 +1737,7 @@ void createFile()
 
     gotoxy(fileX + 2, fileY + 2);
     string dirName;
-    cout << "Enter username: ";
+    cout << "Enter dirname: ";
     cin >> dirName;
 
     gotoxy(fileX + 2, fileY + 3);
@@ -1858,10 +1860,12 @@ void printFiles()
             if (selectedFileName == fileList[i])
             {
                 string namefile = selectedFileName.substr(0, selectedFileName.length() - 4);
+                fileInfo = FileInfo();
+                fileAccess = Permission();
                 file.getInfoFile(fname, namefile, fileInfo, fileAccess); // get all information
 
                 string infoname = account.getInfo().username;
-                file.setUserInfo(infoname);
+
                 system("cls");
                 fileHeight = 15;
 
@@ -1935,9 +1939,9 @@ void printFiles()
                     {
                         gotoxy(fileX + 2, optionY);
                         if (selectedOption == 7)
-                            cout << "[Add permission]";
+                            cout << "[Manage access]";
                         else
-                            cout << " Add permission ";
+                            cout << " Manage access ";
                         optionY++;
                     }
 
@@ -1992,7 +1996,7 @@ void printFiles()
                     copyFile(fname, namefile);
                     break;
                 case 7:
-                    permissionsFile(fname, namefile);
+                    manageAccessFile(fname, namefile);
                     break;
                 case 8:
                     previousPage.pop_back();
@@ -2010,41 +2014,46 @@ void getInfoFile(string dirName, string fileName)
 {
     system("cls");
 
-    file.getInfoFile(dirName, fileName, fileInfo, fileAccess);
-    cout << "Author: " << fileInfo.authorName << endl;
-
-    cout << "Viewer: ";
-    for (const auto &viewer : fileAccess.viewers)
-    {
-        cout << viewer << ", ";
-    }
-    cout << endl;
-
-    cout << "Editor: ";
-    for (const auto &editor : fileAccess.editors)
-    {
-        cout << editor << ", ";
-    }
-    cout << endl;
-
-    cout << "Deleter: ";
-    for (const auto &deleter : fileAccess.deleters)
-    {
-        cout << deleter << ", ";
-    }
-    cout << endl;
-
-    cout << "Renames: ";
-    for (const auto &renamer : fileAccess.renamers)
-    {
-        cout << renamer << ", ";
-    }
-    cout << endl;
+    int fileHeight = 10 + fileInfo.content.size();
+    int fileWidth = 60;
+    int fileY = (height - fileHeight) / 2;
+    int fileX = (width - fileWidth) / 2;
+    drawBox(fileX, fileY, fileWidth, fileHeight);
+    gotoxy(fileX + 2, fileY + 2);
 
     cout << "Content:" << endl;
-    for (const auto &contentLine : fileInfo.content)
+    int i;
+    for (i = 0; i < fileInfo.content.size(); i++)
     {
-        cout << contentLine << endl;
+        gotoxy(fileX + 2, fileY + 2 + i);
+        cout << fileInfo.content[i] << endl;
+    }
+    int selectedOption = 1; // Store the currently selected option bool optionSelected = false; // Flag to indicate if an option is selected
+    bool optionSelected = false;
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(fileX + 2, fileY + i + 4);
+        if (selectedOption == 1)
+            cout << "[ Back ]";
+
+        // Get the user input
+        char key = _getch();
+
+        // Process the user input
+        if (key == 13)
+            optionSelected = true;
+    }
+
+    // Process the selected option
+    switch (selectedOption)
+    {
+    case 1:
+        previousPage.pop_back();
+        back();
+        break;
+    default:
+        break;
     }
 }
 
@@ -2158,11 +2167,6 @@ void renameFile(string currentDir, string fileName)
     drawBox(renameX, renameY, renameWidth, renameHeight);
 
     string newFileName;
-
-    for (int i = 0; i < fileAccess.renamers.size(); i++)
-    {
-        cout << fileAccess.renamers[i] << ",";
-    }
 
     gotoxy(renameX + 2, renameY + 2);
     cout << "Enter new name: ";
@@ -2357,10 +2361,107 @@ void deleteFile(string currentDir, string fileName)
     }
 }
 
+void manageAccessFile(string dirName, string fileName)
+{
+    system("cls");
+    previousPage.push_back("ManageAccess");
+
+    int manageAccessHeight = 15;
+    int manageAccessWidth = 60;
+    int manageAccessY = (height - manageAccessHeight) / 2;
+    int manageAccessX = (width - manageAccessWidth) / 2;
+
+    drawBox(manageAccessX, manageAccessY, manageAccessWidth, manageAccessHeight);
+
+    gotoxy(manageAccessX + 2, manageAccessY + 3);
+    cout << "Author: " << fileInfo.authorName << endl;
+
+    gotoxy(manageAccessX + 2, manageAccessY + 4);
+    cout << "Viewer: ";
+    for (const auto &viewer : fileAccess.viewers)
+    {
+        cout << viewer << ", ";
+    }
+
+    gotoxy(manageAccessX + 2, manageAccessY + 5);
+    cout << "Editor: ";
+    for (const auto &editor : fileAccess.editors)
+    {
+        cout << editor << ", ";
+    }
+
+    gotoxy(manageAccessX + 2, manageAccessY + 6);
+    cout << "Deleter: ";
+    for (const auto &deleter : fileAccess.deleters)
+    {
+        cout << deleter << ", ";
+    }
+
+    gotoxy(manageAccessX + 2, manageAccessY + 7);
+    cout << "Renames: ";
+    for (const auto &renamer : fileAccess.renamers)
+    {
+        cout << renamer << ", ";
+    }
+
+    int selectedOption = 1;      // Store the currently selected option
+    bool optionSelected = false; // Flag to indicate if an option is selected
+
+    while (!optionSelected)
+    {
+        // Print the menu options
+        gotoxy(manageAccessX + 2, manageAccessY + 10);
+        if (selectedOption == 1)
+            cout << "[ Add permission ]";
+        else
+            cout << "  Add permission  ";
+
+        gotoxy(manageAccessX + 2, manageAccessY + 11);
+        if (selectedOption == 2)
+            cout << "[ Back ]";
+        else
+            cout << "  Back  ";
+
+        // Get the user input
+        char key = _getch();
+
+        switch (key)
+        {
+        case 72: // Up arrow key
+            if (selectedOption > 1)
+                selectedOption--;
+            break;
+        case 80: // Down arrow key
+            if (selectedOption < 3)
+                selectedOption++;
+            break;
+        case 13: // Enter key
+            optionSelected = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    // Process the selected option
+    switch (selectedOption)
+    {
+    case 1:
+        permissionsFile(dirName, fileName);
+        break;
+    case 2:
+        previousPage.pop_back();
+        back();
+        break;
+    default:
+        break;
+    }
+}
+
 void permissionsFile(string currentDir, string fileName)
 {
     system("cls");
-
+    previousPage.push_back("PermissionsFile");
     int permissionsHeight = 10;
     int permissionsWidth = 60;
     int permissionsY = (height - permissionsHeight) / 2;
@@ -2418,6 +2519,8 @@ void permissionsFile(string currentDir, string fileName)
         gotoxy(permissionsX + 2, permissionsY + 7);
         if (selectedOption == 1)
             cout << "[ Back ]";
+        else
+            cout << "  Back  ";
 
         // Get the user input
         char key = _getch();
