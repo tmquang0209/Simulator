@@ -3,7 +3,8 @@
 #include <cstring>
 #include <windows.h>
 #include <unistd.h>
-#include <conio.h> // Include the conio.h header for _getch() function
+#include <sys/stat.h> // Include sys/stat.h to create folders
+#include <conio.h>    // Include the conio.h header for _getch() function
 #include "Draw.h"
 #include "Draw.cpp"
 #include "CharacterHandling.h"
@@ -42,8 +43,8 @@ void listUser();
 void fileManager();
 void createFile();
 void printFiles();
-void writeInfoFile(string dirName, string fileName);
 void getInfoFile(string dirName, string fileName);
+void editFile(string dirName, string fileName);
 void moveFile(string dirName, string fileName);
 void renameFile(string dirName, string fileName);
 void copyFile(string dirName, string fileName);
@@ -119,6 +120,10 @@ void back()
         cout << username;
         actionMenu(username);
     }
+    else if (previousName == "FileManager")
+    {
+        fileManager();
+    }
 }
 
 void home()
@@ -148,10 +153,11 @@ void home()
             cout << "   1. Account info.";
 
         gotoxy(homeWinX + 2, homeWinY + 5);
-        if (selectedOption == 2) // display with admin
-            cout << "-> 2. Account list.";
-        else
-            cout << "   2. Account list.";
+        if (account.getInfo().typeAccount == "administrator")
+            if (selectedOption == 2) // display with admin
+                cout << "-> 2. Account list.";
+            else
+                cout << "   2. Account list.";
 
         gotoxy(homeWinX + 2, homeWinY + 6);
         if (selectedOption == 3)
@@ -186,9 +192,13 @@ void home()
         case 72: // Up arrow key
             if (selectedOption > 1)
                 selectedOption--;
+            if (selectedOption == 3 && account.getInfo().typeAccount != "administrator")
+                selectedOption--;
             break;
         case 80: // Down arrow key
             if (selectedOption < 6)
+                selectedOption++;
+            if (selectedOption == 1 && account.getInfo().typeAccount != "administrator")
                 selectedOption++;
             break;
         case 13: // Enter key
@@ -333,6 +343,7 @@ void login()
                 else if (msg == -3)
                 {
                     cout << "You need to change password." << endl;
+                    SetConsoleTextAttribute(hConsole, 15);
                     sleep(3);
                     changePassword();
                 }
@@ -473,6 +484,9 @@ void accountInformation()
 {
     system("cls");
     previousPage.push_back("AccountInfo");
+    for (int i = 1; i < previousPage.size(); i++)
+        if (previousPage[i] == previousPage[i - 1])
+            previousPage.erase(previousPage.begin() + i);
 
     int accountInfoWinHeight = 15;
     int accountInfoWinWidth = 50;
@@ -1087,7 +1101,7 @@ void createAccount()
     string fullname, email, phoneNumber, username, password, confirmPassword, type;
     bool isAdmin = false, isUser = true;
     bool isDisable = false, isChangePassword = false;
-
+    getline(cin, fullname);
     gotoxy(createAccountWinX + 20, createAccountWinY + 4);
     getline(cin, fullname);
 
@@ -1278,7 +1292,6 @@ void createAccount()
             break;
         }
     }
-
     switch (selectedOption)
     {
     case 1:
@@ -1295,6 +1308,7 @@ void createAccount()
             cout << "Create account is successful." << endl;
             account.writeActLog(account.getInfo().username, "creates an account with username " + username);
             account.addAccountToList(fullname, email, phoneNumber, username, password, type, isDisable, isChangePassword);
+            mkdir(("./FileManager/" + username).c_str());
             sleep(3);
             home();
         }
@@ -1546,13 +1560,10 @@ void listUser()
         {
             gotoxy(userListX + 5, userListY + row);
             if (selectedOption == i)
-            {
                 cout << " -> ";
-            }
             else
-            {
                 cout << "    ";
-            }
+
             cout << i + 1;
             gotoxy(userListX + 15, userListY + row);
             cout << dataUser[i].fullName;
@@ -1778,22 +1789,22 @@ void printFiles()
     gotoxy(fileX + 2, fileY + 2);
     cout << "Enter foldername: ";
     cin >> folderName;
-    int d = 0;
+    bool checkFolder = false;
     vector<UserInfo> dataUser = account.getList();
     for (int i = 0; i < dataUser.size(); i++)
     {
         if (folderName == dataUser[i].username)
         {
             fname = folderName;
+            checkFolder = true;
+            break;
         }
-        else
-            d++;
     }
-    if (d == dataUser.size())
+    if (!checkFolder)
         cout << "No one has this name!";
 
     system("cls");
-    previousPage.push_back("File manager");
+    previousPage.push_back("FileManager");
 
     drawBox(fileX, fileY, fileWidth, fileHeight);
 
@@ -1849,7 +1860,7 @@ void printFiles()
             {
                 string namefile = selectedFileName.substr(0, selectedFileName.length() - 4);
                 file.getInfoFile(fname, namefile, fileInfo, fileAccess); // get all information
-                cout << "author" << fileInfo.authorName;
+
                 string infoname = account.getInfo().username;
                 file.setUserInfo(infoname);
                 system("cls");
@@ -1857,74 +1868,82 @@ void printFiles()
 
                 drawBox(fileX, fileY, fileWidth, fileHeight);
 
-                int selectedOption = 1;      // Store the currently selected option
-                bool optionSelected = false; // Flag to indicate if an option is selected
+                int selectedOption = 1; // Store the currently selected option bool optionSelected = false; // Flag to indicate if an option is selected
+                bool optionSelected = false;
+                gotoxy(fileX + 2, fileY + 2);
+                cout << "\t\tMenu" << endl;
 
                 while (!optionSelected)
-                {
-                    // file.checkPermission(infoname,"view", fileAccess)
-                    if ((file.checkPermission(infoname, "view", fileAccess)) &&
-                        (!file.checkPermission(infoname, "edit", fileAccess)))
+                { // Print the menu options based on permissions gotoxy(fileX + 2, fileY + 2); cout << “\t\tMenu”;
+
+                    int optionY = fileY + 4; // The starting y-coordinate for the options
+
+                    if (file.checkPermission(infoname, "edit", fileAccess) || fileInfo.authorName == infoname)
                     {
-
-                        gotoxy(fileX + 2, fileY + 3);
-                        cout << "\t\tMenu";
-
-                        gotoxy(fileX + 2, fileY + 5);
-                        if (selectedOption == 2)
-                            cout << "[View file]";
-                        else
-                            cout << " View file ";
-                    }
-                    else if (file.checkPermission(infoname, "edit", fileAccess))
-                    {
-                        gotoxy(fileX + 2, fileY + 2);
-                        cout << "\t\tMenu";
-
-                        gotoxy(fileX + 2, fileY + 4);
+                        gotoxy(fileX + 2, optionY);
                         if (selectedOption == 1)
                             cout << "[Edit file]";
                         else
                             cout << " Edit file ";
-
-                        gotoxy(fileX + 2, fileY + 5);
+                        optionY++; // Increment the y-coordinate for the next option
+                    }
+                    if (file.checkPermission(infoname, "view", fileAccess) || fileInfo.authorName == infoname)
+                    {
+                        gotoxy(fileX + 2, optionY);
                         if (selectedOption == 2)
                             cout << "[View file]";
                         else
                             cout << " View file ";
+                        optionY++;
                     }
-                    // Print the menu options
-                    gotoxy(fileX + 2, fileY + 6);
-                    if (selectedOption == 3)
-                        cout << "[Rename file]";
-                    else
-                        cout << " Rename file ";
+                    if (file.checkPermission(infoname, "rename", fileAccess) || fileInfo.authorName == infoname)
+                    {
+                        gotoxy(fileX + 2, optionY);
+                        if (selectedOption == 3)
+                            cout << "[Rename file]";
+                        else
+                            cout << " Rename file ";
+                        optionY++;
+                    }
+                    if (file.checkPermission(infoname, "delete", fileAccess) || fileInfo.authorName == infoname)
+                    {
+                        gotoxy(fileX + 2, optionY);
+                        if (selectedOption == 4)
+                            cout << "[Delete file]";
+                        else
+                            cout << " Delete file ";
+                        optionY++;
+                    }
+                    if (file.checkPermission(infoname, "move", fileAccess) || fileInfo.authorName == infoname)
+                    {
+                        gotoxy(fileX + 2, optionY);
+                        if (selectedOption == 5)
+                            cout << "[Move file]";
+                        else
+                            cout << " Move file ";
+                        optionY++;
+                    }
+                    if (file.checkPermission(infoname, "copy", fileAccess) || fileInfo.authorName == infoname)
+                    {
+                        gotoxy(fileX + 2, optionY);
+                        if (selectedOption == 6)
+                            cout << "[Copy file]";
+                        else
+                            cout << " Copy file ";
+                        optionY++;
+                    }
+                    if (fileInfo.authorName == infoname)
+                    {
+                        gotoxy(fileX + 2, optionY);
+                        if (selectedOption == 7)
+                            cout << "[Add permission]";
+                        else
+                            cout << " Add permission ";
+                        optionY++;
+                    }
 
-                    gotoxy(fileX + 2, fileY + 7);
-                    if (selectedOption == 4) // display with admin
-                        cout << "[Delete file]";
-                    else
-                        cout << " Delete file ";
-
-                    gotoxy(fileX + 2, fileY + 8);
-                    if (selectedOption == 5)
-                        cout << "[Move file]";
-                    else
-                        cout << " Move file ";
-
-                    gotoxy(fileX + 2, fileY + 9);
-                    if (selectedOption == 6)
-                        cout << "[Copy file]";
-                    else
-                        cout << " Copy file ";
-
-                    gotoxy(fileX + 2, fileY + 10);
-                    if (selectedOption == 7)
-                        cout << "[Add permission]";
-                    else
-                        cout << " Add permission ";
-
-                    gotoxy(fileX + 2, fileY + 11);
+                    // The last option is always back
+                    gotoxy(fileX + 2, optionY);
                     if (selectedOption == 8)
                         cout << "[Back]";
                     else
@@ -1956,7 +1975,7 @@ void printFiles()
                 switch (selectedOption)
                 {
                 case 1:
-                    writeInfoFile(fname, namefile);
+                    editFile(fname, namefile);
                     break;
                 case 2:
                     getInfoFile(fname, namefile);
@@ -1988,13 +2007,51 @@ void printFiles()
     }
 }
 
-void writeInfoFile(string dirName, string fileName)
+void getInfoFile(string dirName, string fileName)
 {
     system("cls");
 
-    cout << "Enter the author's name: ";
-    cin.ignore();
-    getline(cin, fileInfo.authorName);
+    file.getInfoFile(dirName, fileName, fileInfo, fileAccess);
+    cout << "Author: " << fileInfo.authorName << endl;
+
+    cout << "Viewer: ";
+    for (const auto &viewer : fileAccess.viewers)
+    {
+        cout << viewer << ", ";
+    }
+    cout << endl;
+
+    cout << "Editor: ";
+    for (const auto &editor : fileAccess.editors)
+    {
+        cout << editor << ", ";
+    }
+    cout << endl;
+
+    cout << "Deleter: ";
+    for (const auto &deleter : fileAccess.deleters)
+    {
+        cout << deleter << ", ";
+    }
+    cout << endl;
+
+    cout << "Renames: ";
+    for (const auto &renamer : fileAccess.renamers)
+    {
+        cout << renamer << ", ";
+    }
+    cout << endl;
+
+    cout << "Content:" << endl;
+    for (const auto &contentLine : fileInfo.content)
+    {
+        cout << contentLine << endl;
+    }
+}
+
+void editFile(string dirName, string fileName)
+{
+    system("cls");
 
     // Get user input for file content
     cout << "Enter file content (enter 'q' to finish):\n";
@@ -2002,42 +2059,6 @@ void writeInfoFile(string dirName, string fileName)
     while (getline(cin, line) && line != "q")
     {
         fileInfo.content.push_back(line);
-    }
-
-    // Get user input for viewers
-    cout << "Enter viewers (separated by commas): ";
-    getline(cin, line);
-    istringstream viewersStream(line);
-    while (getline(viewersStream, line, ','))
-    {
-        fileAccess.viewers.push_back(line);
-    }
-
-    // Get user input for editors
-    cout << "Enter editors (separated by commas): ";
-    getline(cin, line);
-    istringstream editorsStream(line);
-    while (getline(editorsStream, line, ','))
-    {
-        fileAccess.editors.push_back(line);
-    }
-
-    // Get user input for deleters
-    cout << "Enter deleters (separated by commas): ";
-    getline(cin, line);
-    istringstream deletersStream(line);
-    while (getline(deletersStream, line, ','))
-    {
-        fileAccess.deleters.push_back(line);
-    }
-
-    // Get user input for renamers
-    cout << "Enter renamers (separated by commas): ";
-    getline(cin, line);
-    istringstream renamersStream(line);
-    while (getline(renamersStream, line, ','))
-    {
-        fileAccess.renamers.push_back(line);
     }
 
     // Call the writeInfoFile function
@@ -2400,47 +2421,5 @@ void permissionsFile(string currentDir, string fileName)
         break;
     default:
         break;
-    }
-}
-
-void getInfoFile(string dirName, string fileName)
-{
-    system("cls");
-
-    file.getInfoFile(dirName, fileName, fileInfo, fileAccess);
-    cout << "Author: " << fileInfo.authorName << endl;
-
-    cout << "Viewer: ";
-    for (const auto &viewer : fileAccess.viewers)
-    {
-        cout << viewer << ", ";
-    }
-    cout << endl;
-
-    cout << "Editor: ";
-    for (const auto &editor : fileAccess.editors)
-    {
-        cout << editor << ", ";
-    }
-    cout << endl;
-
-    cout << "Deleter: ";
-    for (const auto &deleter : fileAccess.deleters)
-    {
-        cout << deleter << ", ";
-    }
-    cout << endl;
-
-    cout << "Renames: ";
-    for (const auto &renamer : fileAccess.renamers)
-    {
-        cout << renamer << ", ";
-    }
-    cout << endl;
-
-    cout << "Content:" << endl;
-    for (const auto &contentLine : fileInfo.content)
-    {
-        cout << contentLine << endl;
     }
 }

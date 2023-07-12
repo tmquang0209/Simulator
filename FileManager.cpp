@@ -47,7 +47,7 @@ void FileManager::getInfoFile(string dirName, string fileName, FileInfo &fileInf
     // string dirName = "tmq";
     // string fileName = "demo1";
     string filePath = "./FileManager/" + dirName + "/" + fileName + "_data.txt";
-    cout << filePath;
+    // cout << filePath;
     ifstream fileStream(filePath);
 
     if (!fileStream.is_open())
