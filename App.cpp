@@ -3,6 +3,7 @@
 #include <cstring>
 #include <windows.h>
 #include <unistd.h>
+#include <sys/stat.h> // Include sys/stat.h to create folders
 #include <conio.h> // Include the conio.h header for _getch() function
 #include "Draw.h"
 #include "Draw.cpp"
@@ -1231,6 +1232,7 @@ void createAccount()
         cout << "Create account is successful." << endl;
         account.writeActLog(account.getInfo().username, "creates an account with username " + username);
         account.addAccountToList(fullname, email, phoneNumber, username, password, type, isDisable, isChangePassword);
+        mkdir(("./FileManager/" + username).c_str());           // create folder
         sleep(3);
         home();
     }
