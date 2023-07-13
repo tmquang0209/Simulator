@@ -51,7 +51,7 @@ void renameFile(string dirName, string fileName);
 void copyFile(string dirName, string fileName);
 void deleteFile(string dirName, string fileName);
 void manageAccessFile(string dirName, string fileName);
-void permissionsFile(string dirName, string fileName);
+void permissionsFile(string dirName, string fileName, string type);
 
 int main()
 {
@@ -2418,6 +2418,12 @@ void manageAccessFile(string dirName, string fileName)
 
         gotoxy(manageAccessX + 2, manageAccessY + 11);
         if (selectedOption == 2)
+            cout << "[ Delete permission ]";
+        else
+            cout << "  Delete permission  ";
+
+        gotoxy(manageAccessX + 2, manageAccessY + 12);
+        if (selectedOption == 3)
             cout << "[ Back ]";
         else
             cout << "  Back  ";
@@ -2447,9 +2453,12 @@ void manageAccessFile(string dirName, string fileName)
     switch (selectedOption)
     {
     case 1:
-        permissionsFile(dirName, fileName);
+        permissionsFile(dirName, fileName, "add");
         break;
     case 2:
+        permissionsFile(dirName, fileName, "delete");
+        break;
+    case 3:
         previousPage.pop_back();
         back();
         break;
@@ -2458,7 +2467,7 @@ void manageAccessFile(string dirName, string fileName)
     }
 }
 
-void permissionsFile(string currentDir, string fileName)
+void permissionsFile(string currentDir, string fileName, string type)
 {
     system("cls");
     previousPage.push_back("PermissionsFile");
@@ -2490,7 +2499,7 @@ void permissionsFile(string currentDir, string fileName)
     }
 
     // Call the permissionsFile method
-    int result = file.permissionsFile(targetUser, fileName, permission, fileInfo, fileAccess);
+    int result = file.permissionsFile(targetUser, fileName, permission, type, fileInfo, fileAccess);
     file.writeInfoFile(currentDir, fileName, fileInfo, fileAccess);
 
     // Check the result
@@ -2535,7 +2544,7 @@ void permissionsFile(string currentDir, string fileName)
     {
     case 1:
         previousPage.pop_back();
-        back();
+        fileManager();
         break;
     default:
         break;

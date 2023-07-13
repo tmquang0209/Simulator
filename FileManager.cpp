@@ -8,6 +8,11 @@ using namespace std;
 
 FileManager::FileManager() {}
 
+void FileManager::setList(vector<UserInfo> list)
+{
+    this->list = list;
+}
+
 void FileManager::setUserInfo(UserInfo info)
 {
     this->info = info;
@@ -394,29 +399,84 @@ int FileManager::deleteFile(string dirName, string targetFile, FileInfo fileInfo
  * @param fileInfo
  * @param fileAccess
  */
-int FileManager::permissionsFile(string targetUser, string targetFile, vector<string> permission, FileInfo &fileInfo, Permission &fileAccess)
+int FileManager::permissionsFile(string targetUser, string targetFile, vector<string> permission, string type, FileInfo &fileInfo, Permission &fileAccess)
 {
-
     if (fileInfo.authorName == info.username)
     {
-        // permission
-        if (checkInfo(targetUser))
+        // Add permission
+        if (type == "add")
+        {
+            if (checkInfo(targetUser))
+            {
+                for (int i = 0; i < permission.size(); i++)
+                {
+                    if (permission[i] == "view" && !checkPermission(targetUser, "view", fileAccess))
+                        fileAccess.viewers.push_back(targetUser);
+                    if (permission[i] == "edit" && !checkPermission(targetUser, "edit", fileAccess))
+                        fileAccess.editors.push_back(targetUser);
+                    if (permission[i] == "delete" && !checkPermission(targetUser, "delete", fileAccess))
+                        fileAccess.deleters.push_back(targetUser);
+                    if (permission[i] == "rename" && !checkPermission(targetUser, "rename", fileAccess))
+                        fileAccess.renamers.push_back(targetUser);
+                }
+                return 1; // Successful addition of permission
+            }
+        }
+        // Delete permission
+        else if (type == "delete")
         {
             for (int i = 0; i < permission.size(); i++)
             {
-                if (permission[i] == "view" && !checkPermission(targetUser, "view", fileAccess))
-                    fileAccess.viewers.push_back(targetUser);
-                if (permission[i] == "edit" && !checkPermission(targetUser, "edit", fileAccess))
-                    fileAccess.editors.push_back(targetUser);
-                if (permission[i] == "delete" && !checkPermission(targetUser, "delete", fileAccess))
-                    fileAccess.deleters.push_back(targetUser);
-                if (permission[i] == "rename" && !checkPermission(targetUser, "rename", fileAccess))
-                    fileAccess.renamers.push_back(targetUser);
+                if (permission[i] == "view")
+                {
+                    for (int j = 0; j < fileAccess.viewers.size(); j++)
+                    {
+                        if (targetUser == fileAccess.viewers[j])
+                        {
+                            fileAccess.viewers.erase(fileAccess.viewers.begin() + j);
+                            break;
+                        }
+                    }
+                }
+                else if (permission[i] == "edit")
+                {
+                    for (int j = 0; j < fileAccess.editors.size(); j++)
+                    {
+                        if (targetUser == fileAccess.editors[j])
+                        {
+                            fileAccess.editors.erase(fileAccess.editors.begin() + j);
+                            break;
+                        }
+                    }
+                }
+                else if (permission[i] == "delete")
+                {
+                    for (int j = 0; j < fileAccess.deleters.size(); j++)
+                    {
+                        if (targetUser == fileAccess.deleters[j])
+                        {
+                            fileAccess.deleters.erase(fileAccess.deleters.begin() + j);
+                            break;
+                        }
+                    }
+                }
+                else if (permission[i] == "rename")
+                {
+                    for (int j = 0; j < fileAccess.renamers.size(); j++)
+                    {
+                        if (targetUser == fileAccess.renamers[j])
+                        {
+                            fileAccess.renamers.erase(fileAccess.renamers.begin() + j);
+                            break;
+                        }
+                    }
+                }
             }
             return 1;
-        }
+        }//iffff
     }
-    return -1;
+
+    return -1; // Unauthorized or invalid action
 }
 
 vector<string> PrintFiles(const string &folderPath)
