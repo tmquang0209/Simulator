@@ -417,7 +417,10 @@ int FileManager::permissionsFile(string targetUser, string targetFile, vector<st
                     if (permission[i] == "delete" && !checkPermission(targetUser, "delete", fileAccess))
                         fileAccess.deleters.push_back(targetUser);
                     if (permission[i] == "rename" && !checkPermission(targetUser, "rename", fileAccess))
+                    {
+                        cout << !checkPermission(targetUser, "rename", fileAccess);
                         fileAccess.renamers.push_back(targetUser);
+                    }
                 }
                 return 1; // Successful addition of permission
             }
@@ -438,7 +441,7 @@ int FileManager::permissionsFile(string targetUser, string targetFile, vector<st
                         }
                     }
                 }
-                else if (permission[i] == "edit")
+                if (permission[i] == "edit")
                 {
                     for (int j = 0; j < fileAccess.editors.size(); j++)
                     {
@@ -449,7 +452,7 @@ int FileManager::permissionsFile(string targetUser, string targetFile, vector<st
                         }
                     }
                 }
-                else if (permission[i] == "delete")
+                if (permission[i] == "delete")
                 {
                     for (int j = 0; j < fileAccess.deleters.size(); j++)
                     {
@@ -460,7 +463,7 @@ int FileManager::permissionsFile(string targetUser, string targetFile, vector<st
                         }
                     }
                 }
-                else if (permission[i] == "rename")
+                if (permission[i] == "rename")
                 {
                     for (int j = 0; j < fileAccess.renamers.size(); j++)
                     {
@@ -473,7 +476,7 @@ int FileManager::permissionsFile(string targetUser, string targetFile, vector<st
                 }
             }
             return 1;
-        }//iffff
+        } // iffff
     }
 
     return -1; // Unauthorized or invalid action

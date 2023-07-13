@@ -2084,6 +2084,7 @@ void editFile(string dirName, string fileName)
         inputY++; // Move the input location to the next line
     }
 
+    account.writeActLog(account.getInfo().username, "edited file " + fileName + " in " + dirName);
     // Call the writeInfoFile function
     file.writeInfoFile(dirName, fileName, fileInfo, fileAccess);
     back();
@@ -2113,6 +2114,7 @@ void moveFile(string currentDir, string fileName)
     if (result == 1)
     {
         gotoxy(moveX + 2, moveY + 5);
+        account.writeActLog(account.getInfo().username, "moved file " + fileName + " from " + currentDir + " to " + targetDir);
         cout << "File moved successfully." << endl;
     }
     else if (result == -2)
@@ -2506,7 +2508,11 @@ void permissionsFile(string currentDir, string fileName, string type)
     if (result == 1)
     {
         gotoxy(permissionsX + 2, permissionsY + 5);
-        account.writeActLog(account.getInfo().username, "grants users the right to " + permissionInput + " for file" + fileName);
+        if (type == "add")
+            account.writeActLog(account.getInfo().username, "grants user " + targetUser + " the right to " + permissionInput + " for file " + fileName);
+        else if (type == "delete")
+            account.writeActLog(account.getInfo().username, "cancel user " + targetUser + " the right to " + permissionInput + " for file " + fileName);
+
         cout << "Done ." << endl;
     }
     else if (result == -2)
