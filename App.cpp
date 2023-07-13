@@ -829,7 +829,7 @@ void forgotPassword()
 void verifyForgotPassword(string username)
 {
     system("cls");
-    int forgotPageWinHeight = 10;
+    int forgotPageWinHeight = 15;
     int forgotPageWinWidth = 50;
     int forgotPageWinY = (height - forgotPageWinHeight) / 2;
     int forgotPageWinx = (width - forgotPageWinWidth) / 2;
@@ -939,7 +939,7 @@ void activityLog()
     account.activityLog(data);
 
     int accountWinHeight = 10 + data.size();
-    int accountWinWidth = 60;
+    int accountWinWidth = 80;
     int accountWinY = (height - accountWinHeight) / 3;
     int accountWinX = (width - accountWinWidth) / 2;
 
@@ -1000,7 +1000,7 @@ void activityLog(string username)
     account.activityLog(data, username);
 
     int accountWinHeight = 10 + data.size();
-    int accountWinWidth = 60;
+    int accountWinWidth = 80;
     int accountWinY = (height - accountWinHeight) / 3;
     int accountWinX = (width - accountWinWidth) / 2;
 
@@ -1099,9 +1099,10 @@ void createAccount()
     gotoxy(createAccountWinX + 2, createAccountWinY + 10);
     cout << "Account type: ";
 
-    string fullname, email, phoneNumber, username, password, confirmPassword, type;
+    string fullname, email, phoneNumber, username, password, confirmPassword, type = "user";
     bool isAdmin = false, isUser = true;
     bool isDisable = false, isChangePassword = false;
+
     getline(cin, fullname);
     gotoxy(createAccountWinX + 20, createAccountWinY + 4);
     getline(cin, fullname);
