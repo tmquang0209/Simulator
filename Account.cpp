@@ -18,6 +18,11 @@ Account::Account()
     readFileAccount();
 }
 
+Account::Account(UserInfo info)
+{
+    this->info = info;
+}
+
 void Account::addToList(UserInfo info)
 {
     list.push_back(info);
@@ -55,6 +60,16 @@ UserInfo Account::getInfo()
     return info;
 }
 
+UserInfo Account::getInfo(string username)
+{
+    for (int i = 0; i < list.size(); i++)
+    {
+        if (list[i].username == username)
+            return list[i];
+    }
+    return UserInfo();
+}
+
 void Account::setList(vector<UserInfo> list)
 {
     this->list = list;
@@ -89,6 +104,51 @@ bool Account::checkInfo(string username)
             return true;
     }
     return false;
+}
+
+/**
+ * @brief check account information
+ * * Message Error
+ * 1: Correct
+ * -1: Not found
+ * -2: Username or password incorrect
+ * -3: You need to change password
+ * -4: Account is disabled
+ * @param username
+ * @param password
+ * @return int
+ */
+int Account::checkInfo(string username, string password)
+{
+    UserInfo check;
+    for (int i = 0; i < list.size(); i++)
+    {
+        if (list[i].username == username)
+        {
+            check = list[i];
+            break;
+        }
+    }
+
+    if (check.fullName == "")
+        return -1;
+    else if (check.password != password)
+        return -2;
+    else if (check.changePassword)
+    {
+        setInfo(check);
+        setIsLogin(true);
+        return -3;
+    }
+    else if (check.isDisable)
+        return -4;
+    else
+    {
+        setInfo(check);
+        setIsLogin(true);
+
+        return 1;
+    }
 }
 
 bool Account::checkVerifyCode(string username, string code)
@@ -185,51 +245,6 @@ void Account::printInfo()
 }
 
 /**
- * @brief check account information
- * * Message Error
- * 1: Correct
- * -1: Not found
- * -2: Username or password incorrect
- * -3: You need to change password
- * -4: Account is disabled
- * @param username
- * @param password
- * @return int
- */
-int Account::checkInfo(string username, string password)
-{
-    UserInfo check;
-    for (int i = 0; i < list.size(); i++)
-    {
-        if (list[i].username == username)
-        {
-            check = list[i];
-            break;
-        }
-    }
-
-    if (check.fullName == "")
-        return -1;
-    else if (check.password != password)
-        return -2;
-    else if (check.changePassword)
-    {
-        setInfo(check);
-        setIsLogin(true);
-        return -3;
-    }
-    else if (check.isDisable)
-        return -4;
-    else
-    {
-        setInfo(check);
-        setIsLogin(true);
-
-        return 1;
-    }
-}
-
-/**
  * @brief update account info by username
  *
  * @param username
@@ -259,6 +274,33 @@ void Account::updateInfo(string username, string fullName, string email, string 
             list[i].email = email;
             list[i].phoneNumber = phoneNumber;
             writeActLog(info.username, "update information of " + username);
+            break;
+        }
+    }
+    writeFileAccount();
+}
+
+void Account::activeAccount(string username)
+{
+    for (int i = 0; i < list.size(); i++)
+    {
+        if (list[i].username == username)
+        {
+            // Enable the account
+            list[i].isDisable = !list[i].isDisable;
+            break;
+        }
+    }
+    writeFileAccount();
+}
+
+void Account::deleteAccount(string username)
+{
+    for (int i = 0; i < list.size(); i++)
+    {
+        if (list[i].username == username)
+        {
+            list.erase(list.begin() + i);
             break;
         }
     }

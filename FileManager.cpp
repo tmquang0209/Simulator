@@ -8,6 +8,16 @@ using namespace std;
 
 FileManager::FileManager() {}
 
+void FileManager::setList(vector<UserInfo> list)
+{
+    this->list = list;
+}
+
+void FileManager::setUserInfo(UserInfo info)
+{
+    this->info = info;
+}
+
 bool FileManager::checkPermission(string username, string typeCheck, Permission fileAccess)
 {
     if (typeCheck == "view")
@@ -42,7 +52,7 @@ void FileManager::getInfoFile(string dirName, string fileName, FileInfo &fileInf
     // string dirName = "tmq";
     // string fileName = "demo1";
     string filePath = "./FileManager/" + dirName + "/" + fileName + "_data.txt";
-    cout << filePath;
+    // cout << filePath;
     ifstream fileStream(filePath);
 
     if (!fileStream.is_open())
@@ -60,7 +70,7 @@ void FileManager::getInfoFile(string dirName, string fileName, FileInfo &fileInf
         }
         else if (line.find("+ View:") == 0)
         {
-            string viewersStr = line.substr(8);
+            string viewersStr = line.substr(7);
             istringstream iss(viewersStr);
             string username;
 
@@ -75,7 +85,7 @@ void FileManager::getInfoFile(string dirName, string fileName, FileInfo &fileInf
         }
         else if (line.find("+ Edit:") == 0)
         {
-            string editorsStr = line.substr(8);
+            string editorsStr = line.substr(7);
             istringstream iss(editorsStr);
             string username;
 
@@ -89,7 +99,7 @@ void FileManager::getInfoFile(string dirName, string fileName, FileInfo &fileInf
         }
         else if (line.find("+ Delete:") == 0)
         {
-            string deletersStr = line.substr(10);
+            string deletersStr = line.substr(9);
             istringstream iss(deletersStr);
             string username;
 
@@ -192,10 +202,20 @@ void FileManager::writeInfoFile(string dirName, string fileName, FileInfo fileIn
 
 void FileManager::createFile(string dirName, string fileName)
 {
-    fstream newFile;
     string filePath = "./FileManager/" + dirName + "/" + fileName + ".txt";
+    ofstream newFile(filePath);
 
-    newFile.open(filePath);
+    string file_Path = "./FileManager/" + dirName + "/" + fileName + "_data.txt";
+    ofstream newFile_(file_Path);
+
+    vector<string> content;
+    FileInfo fileInfo;
+    fileInfo.authorName = info.username;
+    fileInfo.content = content;
+
+    Permission fileAccess;
+
+    writeInfoFile(dirName, fileName, fileInfo, fileAccess);
 }
 
 // void FileManager::viewFile(string dirName, string fileName, FileInfo fileInfo, Permission fileAccess)
@@ -229,14 +249,19 @@ void FileManager::createFile(string dirName, string fileName)
  */
 int FileManager::moveFile(string currentDir, string targetDir, string fileName, FileInfo fileInfo, Permission fileAccess)
 {
+
     if (fileInfo.authorName == info.username || checkPermission(info.username, "rename", fileAccess))
     {
         // Move file
-        string currentPath = "./FileManager/" + currentDir + "/" + fileName;
-        string targetPath = "./FileManager/" + targetDir + "/" + fileName;
-
+        string currentPath = "./FileManager/" + currentDir + "/" + fileName + ".txt";
+        string targetPath = "./FileManager/" + targetDir + "/" + fileName + ".txt";
+        string currentDataPath = "./FileManager/" + currentDir + "/" + fileName + "_data.txt";
+        string targetDataPath = "./FileManager/" + targetDir + "/" + fileName + "_data.txt";
         if (rename(currentPath.c_str(), targetPath.c_str()) == 0)
+        {
+            rename(currentDataPath.c_str(), targetDataPath.c_str());
             return 1;
+        }
         else
             return -2;
     }
@@ -258,6 +283,7 @@ int FileManager::moveFile(string currentDir, string targetDir, string fileName, 
  */
 int FileManager::copyFile(string currentDir, string targetDir, string fileName, FileInfo fileInfo, Permission fileAccess)
 {
+
     if (fileInfo.authorName == info.username || checkPermission(info.username, "rename", fileAccess))
     {
         // Copy file
@@ -313,7 +339,7 @@ int FileManager::renameFile(string dirName, string targetFile, string newFileNam
     string oldDataName = dirPath + dirName + "/" + targetFile + "_data.txt";
     string newDataName = dirPath + dirName + "/" + newFileName + "_data.txt";
 
-    cout << oldName;
+    // cout << oldName;
     if (fileInfo.authorName == info.username || checkPermission(info.username, "rename", fileAccess))
     {
         // rename
@@ -345,12 +371,16 @@ int FileManager::deleteFile(string dirName, string targetFile, FileInfo fileInfo
 {
     string dirPath = "./FileManager/";
     string removeFile = dirPath + dirName + "/" + targetFile + ".txt";
+    string removeDataFile = dirPath + dirName + "/" + targetFile + "_data.txt";
 
     if (fileInfo.authorName == info.username || checkPermission(info.username, "delete", fileAccess))
     {
         // delete file
         if (remove(removeFile.c_str()) == 0)
+        {
+            remove(removeDataFile.c_str());
             return 1;
+        }
         else
             return -2;
     }
@@ -369,26 +399,122 @@ int FileManager::deleteFile(string dirName, string targetFile, FileInfo fileInfo
  * @param fileInfo
  * @param fileAccess
  */
-int FileManager::permissionsFile(string targetUser, string targetFile, vector<string> permission, FileInfo &fileInfo, Permission &fileAccess)
+int FileManager::permissionsFile(string targetUser, string targetFile, vector<string> permission, string type, FileInfo &fileInfo, Permission &fileAccess)
 {
     if (fileInfo.authorName == info.username)
     {
-        // permission
-        if (checkInfo(targetUser))
+        // Add permission
+        if (type == "add")
+        {
+            if (checkInfo(targetUser))
+            {
+                for (int i = 0; i < permission.size(); i++)
+                {
+                    if (permission[i] == "view" && !checkPermission(targetUser, "view", fileAccess))
+                        fileAccess.viewers.push_back(targetUser);
+                    if (permission[i] == "edit" && !checkPermission(targetUser, "edit", fileAccess))
+                        fileAccess.editors.push_back(targetUser);
+                    if (permission[i] == "delete" && !checkPermission(targetUser, "delete", fileAccess))
+                        fileAccess.deleters.push_back(targetUser);
+                    if (permission[i] == "rename" && !checkPermission(targetUser, "rename", fileAccess))
+                    {
+                        cout << !checkPermission(targetUser, "rename", fileAccess);
+                        fileAccess.renamers.push_back(targetUser);
+                    }
+                }
+                return 1; // Successful addition of permission
+            }
+        }
+        // Delete permission
+        else if (type == "delete")
         {
             for (int i = 0; i < permission.size(); i++)
             {
                 if (permission[i] == "view")
-                    fileAccess.viewers.push_back(targetUser);
+                {
+                    for (int j = 0; j < fileAccess.viewers.size(); j++)
+                    {
+                        if (targetUser == fileAccess.viewers[j])
+                        {
+                            fileAccess.viewers.erase(fileAccess.viewers.begin() + j);
+                            break;
+                        }
+                    }
+                }
                 if (permission[i] == "edit")
-                    fileAccess.editors.push_back(targetUser);
+                {
+                    for (int j = 0; j < fileAccess.editors.size(); j++)
+                    {
+                        if (targetUser == fileAccess.editors[j])
+                        {
+                            fileAccess.editors.erase(fileAccess.editors.begin() + j);
+                            break;
+                        }
+                    }
+                }
                 if (permission[i] == "delete")
-                    fileAccess.deleters.push_back(targetUser);
+                {
+                    for (int j = 0; j < fileAccess.deleters.size(); j++)
+                    {
+                        if (targetUser == fileAccess.deleters[j])
+                        {
+                            fileAccess.deleters.erase(fileAccess.deleters.begin() + j);
+                            break;
+                        }
+                    }
+                }
                 if (permission[i] == "rename")
-                    fileAccess.renamers.push_back(targetUser);
+                {
+                    for (int j = 0; j < fileAccess.renamers.size(); j++)
+                    {
+                        if (targetUser == fileAccess.renamers[j])
+                        {
+                            fileAccess.renamers.erase(fileAccess.renamers.begin() + j);
+                            break;
+                        }
+                    }
+                }
             }
             return 1;
-        }
+        } // iffff
     }
-    return -1;
+
+    return -1; // Unauthorized or invalid action
+}
+
+vector<string> PrintFiles(const string &folderPath)
+{
+    WIN32_FIND_DATAA findData;
+    HANDLE hFind = INVALID_HANDLE_VALUE;
+
+    string searchPath = folderPath + "\\*";
+
+    hFind = FindFirstFileA(searchPath.c_str(), &findData);
+    if (hFind == INVALID_HANDLE_VALUE)
+    {
+        cout << "Cannot open directory: " << folderPath << endl;
+        return vector<string>();
+    }
+
+    vector<string> fileList;
+
+    do
+    {
+        if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        {
+            continue; // Bỏ qua thư mục
+        }
+        else
+        {
+            string fileName(findData.cFileName);
+            if (fileName.find("_data.txt") == string::npos)
+            {
+                fileList.push_back(fileName); // Thêm tên tệp tin vào danh sách
+            }
+        }
+    } while (FindNextFileA(hFind, &findData) != 0);
+
+    FindClose(hFind);
+
+    return fileList;
 }
