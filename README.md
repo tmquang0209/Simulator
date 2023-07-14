@@ -5,7 +5,7 @@ To run this project, install it locally using g++
 g++ App.cpp -o App
 .\App
 ```
-##Before install app, we need create 2 folder
+## Before install app, we need create 2 folder
 - data folder: create info.txt file to create default account
     + FullName|Email|Phone number|Username|Password|Account type|Disable|Change password|
     + Explain:
